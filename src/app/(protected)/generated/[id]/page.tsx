@@ -1,0 +1,57 @@
+import { Metadata } from "next";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { db } from "@/services/db";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { notFound } from "next/navigation";
+
+export const metadata: Metadata = {
+  title: "Trabalho Gerado | DeepPenAI",
+  description: "Visualização de trabalho gerado",
+};
+
+export default async function GeneratedWorkPage({
+  params,
+}: {
+  params: { id: string };
+}) {
+  const session = await getServerSession(authOptions);
+  const work = await db.getGeneratedWorkById(params.id);
+
+  if (!work || work.userId !== session?.user?.id) {
+    notFound();
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold">{work.topic}</h1>
+        <Link href="/generated">
+          <Button variant="outline">Voltar</Button>
+        </Link>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <div className="flex justify-between items-center">
+            <CardTitle>Conteúdo Gerado</CardTitle>
+            <div className="text-sm text-muted-foreground">
+              <p>Idioma: {work.language}</p>
+              <p>Estilo de Citação: {work.citationStyle}</p>
+              <p>Gerado em: {new Date(work.createdAt).toLocaleDateString()}</p>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="prose prose-lg dark:prose-invert max-w-none">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{work.generatedText}</ReactMarkdown>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+} 

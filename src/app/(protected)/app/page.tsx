@@ -126,6 +126,24 @@ const DeepPenAIApp = () => {
  const [error, setError] = useState<string | null>(null);
  const [currentTextAreaValue, setCurrentTextAreaValue] = useState<string>('As instruções ou estrutura para geração do texto aparecerão aqui...');
 
+ // Add this new component
+ const MarkdownTextarea = ({ value, onChange, placeholder }: { value: string; onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void; placeholder?: string }) => {
+   return (
+     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+       <Textarea
+         value={value}
+         onChange={onChange}
+         placeholder={placeholder}
+         className="min-h-[200px] max-h-[400px] font-sans text-sm overflow-y-auto text-foreground dark:text-foreground"
+       />
+       <div className="hidden md:block p-4 rounded-md border border-input bg-background/50 h-[400px] overflow-y-auto">
+         <div className="prose prose-sm dark:prose-invert max-w-none font-serif text-foreground dark:text-foreground">
+           <ReactMarkdown remarkPlugins={[remarkGfm]}>{value}</ReactMarkdown>
+         </div>
+       </div>
+     </div>
+   );
+ };
 
  const getLanguageName = (code: LanguageCode | string | undefined): string => {
  return languageMap[code as LanguageCode] || code || 'Desconhecido';
@@ -702,15 +720,15 @@ const DeepPenAIApp = () => {
  </CardTitle>
  </div>
  </CardHeader>
- <CardContent className="p-8">
- <p className="text-muted-foreground mb-6">
+ <CardContent className="p-8 bg-gradient-to-r from-blue-70 to-blue-80 rounded-xl" >
+ <p className="text-2xl font-semibold text-primary text-black mb-6">
  Digite os títulos, tópicos ou o tema geral. Escolha o idioma de geração no topo da página.
  </p>
  <Textarea
  placeholder="Ex: Introdução à Inteligência Artificial, Impactos da IA na Sociedade..."
  value={topicTitles}
  onChange={e => setTopicTitles(e.target.value)}
- className="min-h-[150px] text-base rounded-md shadow-sm focus:shadow-md bg-background/50 border-input focus:border-primary/70 backdrop-blur-sm"
+ className="min-h-[150px] text-base rounded-md shadow-sm focus:shadow-md bg-background/50 border-input focus:border-primary/70 backdrop-blur-sm border-2 border-primary/40 font-semibold text-lg"
  rows={6}
  spellCheck={false}
  />
@@ -757,25 +775,22 @@ const DeepPenAIApp = () => {
  <Label htmlFor="instructions-display" className="block mb-2 font-semibold">
  {activeTab === 'file' ? 'Instruções Extraídas' : 'Estrutura/Índice Gerado'}
  </Label>
- <Textarea
- id="instructions-display"
- value={currentTextAreaValue}
- onChange={handleInstructionsChange}
- className="border border-input rounded-md p-4 bg-background/50 text-foreground min-h-[8rem] shadow-sm focus:border-primary/70 backdrop-blur-sm"
- rows={5}
- spellCheck={false}
+ <MarkdownTextarea
+   value={currentTextAreaValue}
+   onChange={handleInstructionsChange}
+   placeholder="As instruções ou estrutura para geração do texto aparecerão aqui..."
  />
- <p className="mt-2 text-xs text-muted-foreground">
+ <p className="mt-2 text-xs text-muted-foreground dark:text-muted-foreground">
  {activeTab === 'file' && extractedInstructions
- ? 'Conteúdo extraído. Pode ser editado diretamente. Para reprocessar, envie novo arquivo.'
- : ''}
+   ? 'Conteúdo extraído. Pode ser editado diretamente. Para reprocessar, envie novo arquivo.'
+   : ''}
  {activeTab === 'titles' && generatedIndex
- ? `Índice gerado${detectedTopic ? ` para o tópico: "${detectedTopic}"` : ''}. Pode ser editado. Para reprocessar, modifique Títulos/Tema e gere novamente.`
- : ''}
+   ? `Índice gerado${detectedTopic ? ` para o tópico: "${detectedTopic}"` : ''}. Pode ser editado. Para reprocessar, modifique Títulos/Tema e gere novamente.`
+   : ''}
  {(activeTab === 'file' && !extractedInstructions && !isLoadingExtract) ||
  (activeTab === 'titles' && !generatedIndex && !isLoadingIndex && !isLoadingTopicDetection)
- ? 'Você pode editar este campo diretamente ou usar as opções acima.'
- : ''}
+   ? 'Você pode editar este campo diretamente ou usar as opções acima.'
+   : ''}
  </p>
  </div>
 
@@ -791,8 +806,8 @@ const DeepPenAIApp = () => {
  </div>
  <p className="mt-1 text-xs text-muted-foreground">
  {activeTab === 'file'
- ? `Detectado: ${getLanguageName(detectedLanguage)}.`
- : `Altere no seletor no topo.`}
+   ? `Detectado: ${getLanguageName(detectedLanguage)}.`
+   : `Altere no seletor no topo.`}
  </p>
  </div>
  <div>
@@ -856,7 +871,7 @@ const DeepPenAIApp = () => {
  </Button>
 
  {/* Generated Text Display */}
- <div className="bg-black/60 dark:bg-gray-800 rounded-xl shadow-md overflow-hidden transition-colors duration-300">
+ <div className="sm:ml-1 sm:mr-1 bg-black/60 dark:bg-gray-800 rounded-xl shadow-md overflow-hidden transition-colors duration-300">
      <div className="flex justify-between items-center px-6 py-4 bg-gray-50/10 dark:bg-gray-900/50 border-b border-gray-200/20 dark:border-gray-700/30">
        <h3 className="text-xl font-semibold text-gray-100 dark:text-gray-100">
          Texto Acadêmico Gerado
@@ -890,26 +905,27 @@ const DeepPenAIApp = () => {
              border: "1px solid #e0e0e0"
            }}
          >
-           <div
-             className="max-w-none
-               text-gray-900 dark:text-gray-800
-               font-serif prose prose-lg dark:prose-invert
-               prose-headings:font-bold prose-headings:text-blue-900 dark:prose-headings:text-blue-800
-               prose-h1:text-3xl prose-h1:mt-8 prose-h1:mb-4
-               prose-h2:text-2xl prose-h2:mt-6 prose-h2:mb-3
-               prose-h3:text-xl prose-h3:mt-5 prose-h3:mb-2
-               prose-h4:text-lg prose-h4:mt-4 prose-h4:mb-2
-               prose-p:my-4 prose-p:leading-relaxed
-               prose-ul:list-disc prose-ul:pl-6 prose-ul:space-y-1
-               prose-strong:font-bold prose-strong:text-gray-900 dark:prose-strong:text-gray-100
-               prose-em:italic
-               prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:pl-4 prose-blockquote:italic
-               prose-code:text-sm prose-code:bg-gray-100 dark:prose-code:bg-gray-800 prose-code:px-1 prose-code:py-0.5 prose-code:rounded
-               prose-pre:bg-gray-100 dark:prose-pre:bg-gray-800 prose-pre:p-4 prose-pre:rounded-lg"
-             style={{ lineHeight: "1.7" }}
-           >
-             <ReactMarkdown remarkPlugins={[remarkGfm]}>{generatedText}</ReactMarkdown>
-           </div>
+           <div className="
+              mr-1 ml-1 sm:mr-24 sm:ml-24 max-w-none
+              text-gray-900 dark:text-gray-800
+              font-serif prose prose-lg dark:prose-invert
+              prose-headings:font-bold prose-headings:text-back-900 dark:prose-headings:text-blue-800
+              prose-h1:text-3xl prose-h1:mt-8 prose-h1:mb-4
+              prose-h2:text-2xl prose-h2:mt-6 prose-h2:mb-3
+              prose-h3:text-xl prose-h3:mt-5 prose-h3:mb-2
+              prose-h4:text-lg prose-h4:mt-4 prose-h4:mb-2
+              prose-p:my-4 prose-p:leading-relaxed
+              prose-ul:list-disc prose-ul:pl-6 prose-ul:space-y-1
+              prose-strong:font-bold prose-strong:text-gray-900 dark:prose-strong:text-gray-100
+              prose-em:italic
+              prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:pl-4 prose-blockquote:italic
+              prose-code:text-sm prose-code:bg-gray-100 dark:prose-code:bg-gray-800 prose-code:px-1 prose-code:py-0.5 prose-code:rounded
+              prose-pre:bg-gray-100 dark:prose-pre:bg-gray-800 prose-pre:p-4 prose-pre:rounded-lg"
+              style={{ lineHeight: "1.9", textAlign: "justify" }}
+            >
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{generatedText}</ReactMarkdown>
+          </div>
+
          </div>
        ) : (
          <div 
@@ -919,7 +935,7 @@ const DeepPenAIApp = () => {
              border: "1px solid #e0e0e0"
            }}
          >
-           <p className="text-gray-500 dark:text-gray-500 italic text-center">
+           <p className="text-gray-500 dark:text-gray-300 italic text-center">
              O texto acadêmico gerado aparecerá aqui em formato Markdown.
            </p>
          </div>

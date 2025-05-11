@@ -100,10 +100,16 @@ export const db = {
   },
 
   async getGeneratedWorksByUserId(userId: string) {
-    return prisma.generatedWork.findMany({
+    return await prisma.generatedWork.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
-    })
+    });
+  },
+
+  async getGeneratedWorkById(id: string) {
+    return await prisma.generatedWork.findUnique({
+      where: { id },
+    });
   },
 
   async updateGeneratedWork(id: string, data: Partial<Omit<GeneratedWork, 'id' | 'createdAt' | 'updatedAt' | 'userId'>>) {

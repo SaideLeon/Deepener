@@ -15,6 +15,7 @@ export const metadata: Metadata = {
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
   const papers = await db.getPapersByUserId(session?.user?.id || "");
+  const generatedWorks = await db.getGeneratedWorksByUserId(session?.user?.id || "");
   const activityLogs = await db.getActivityLogsByUserId(session?.user?.id || "");
 
   return (
@@ -32,7 +33,7 @@ export default async function DashboardPage() {
             <CardTitle>Trabalhos</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">{papers.length}</p>
+            <p className="text-2xl font-bold">{generatedWorks.length}</p>
             <p className="text-xs text-muted-foreground">
               Total de trabalhos criados
             </p>
@@ -51,32 +52,38 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
       </div>
-
       <div className="space-y-4">
-        <h2 className="text-xl font-semibold">Trabalhos Recentes</h2>
+        <h2 className="text-xl font-semibold">Trabalhos Gerados Recentes</h2>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {papers.slice(0, 3).map((paper: Paper) => (
-            <Card key={paper.id}>
+          {generatedWorks.slice(0, 3).map((work) => (
+            <Card key={work.id}>
               <CardHeader>
-                <CardTitle className="line-clamp-1">{paper.title}</CardTitle>
+                <CardTitle className="line-clamp-1">{work.topic}</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">
-                  Status: {paper.status}
+                  Idioma: {work.language}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Criado em: {new Date(paper.createdAt).toLocaleDateString()}
+                  Estilo de Citação: {work.citationStyle}
                 </p>
-                <Link href={`/papers/${paper.id}`}>
-                  <Button variant="link" className="p-0">
-                    Ver detalhes
-                  </Button>
-                </Link>
+                <p className="text-sm text-muted-foreground">
+                  Gerado em: {new Date(work.createdAt).toLocaleDateString()}
+                </p>
+                <div className="mt-2">
+                  <Link href={`/generated/${work.id}`}>
+                    <Button variant="link" className="p-0">
+                      Ver Conteúdo
+                    </Button>
+                  </Link>
+                </div>
               </CardContent>
             </Card>
           ))}
         </div>
       </div>
+ 
+        
     </div>
   );
 } 
