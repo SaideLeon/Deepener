@@ -94,6 +94,9 @@
   fr: 'Français',
  };
 
+ 
+
+
  const DeepPenAIApp = () => {
   const {toast} = useToast();
 
@@ -855,65 +858,75 @@
 
   {/* Generated Text Display */}
   <div className="bg-black/60 dark:bg-gray-800 rounded-xl shadow-md overflow-hidden transition-colors duration-300">
-    <div className="flex justify-between items-center px-6 py-4 bg-gray-50/10 dark:bg-gray-900/50 border-b border-gray-200/20 dark:border-gray-700/30">
-      <h3 className="text-xl font-semibold text-gray-100 dark:text-gray-100">
-        Texto Acadêmico Gerado
-      </h3>
-      {generatedText && (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={copyToClipboard}
-          title="Copiar texto"
-          className="text-gray-300 dark:text-gray-300 hover:bg-gray-200/20 dark:hover:bg-gray-700/50 rounded p-1.5 transition-colors"
-        >
-          <Copy className="h-5 w-5"/>
-        </Button>
-      )}
-    </div>
+      <div className="flex justify-between items-center px-6 py-4 bg-gray-50/10 dark:bg-gray-900/50 border-b border-gray-200/20 dark:border-gray-700/30">
+        <h3 className="text-xl font-semibold text-gray-100 dark:text-gray-100">
+          Texto Acadêmico Gerado
+        </h3>
+        {generatedText && (
+          <button
+            onClick={copyToClipboard}
+            title="Copiar texto"
+            className="text-gray-300 dark:text-gray-300 hover:bg-gray-200/20 dark:hover:bg-gray-700/50 rounded p-1.5 transition-colors"
+          >
+            <Copy className="h-5 w-5" />
+          </button>
+        )}
+      </div>
 
-    <div className="p-6 min-h-[200px]">
+      <div className="p-6 min-h-[200px]">
         {isLoadingGenerate || isLoadingExpand || isLoadingDeepen ? (
           <div className="flex flex-col items-center justify-center h-full py-10">
-            <Loader2 className="h-10 w-10 animate-spin text-primary-foreground/80 dark:text-primary-foreground/80"/>
+            <Loader2 className="h-10 w-10 animate-spin text-primary-foreground/80 dark:text-primary-foreground/80" />
             <p className="ml-2 mt-3 text-muted-foreground/80 dark:text-muted-foreground/70">
-              {isLoadingGenerate && 'Gerando texto...'}
-              {isLoadingExpand && 'Expandindo texto...'}
-              {isLoadingDeepen && 'Aprofundando texto...'}
+              {isLoadingGenerate && "Gerando texto..."}
+              {isLoadingExpand && "Expandindo texto..."}
+              {isLoadingDeepen && "Aprofundando texto..."}
             </p>
           </div>
         ) : generatedText ? (
-          <div
-            className="prose dark:prose-invert max-w-none
-                       text-gray-100 dark:text-gray-100
-                       prose-headings:text-primary-foreground/90 dark:prose-headings:text-primary-foreground/90
-                       prose-a:text-accent/90 dark:prose-a:text-accent/90
-                       prose-strong:text-gray-50 dark:prose-strong:text-gray-50
-                       prose-blockquote:border-accent/70 dark:prose-blockquote:border-accent/70 prose-blockquote:text-gray-300 dark:prose-blockquote:text-gray-300
-                       font-serif"
-            style={{ lineHeight: '1.7' }}
+          <div 
+            className="bg-white dark:bg-gray-100 p-8 rounded shadow-sm overflow-auto max-h-[600px]"
+            style={{ 
+              backgroundImage: "linear-gradient(to bottom, #f9f9f9 0%, white 100%)",
+              border: "1px solid #e0e0e0"
+            }}
           >
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{generatedText}</ReactMarkdown>
+            <div
+              className="max-w-none
+                text-gray-900 dark:text-gray-800
+                font-serif"
+              style={{ lineHeight: "1.7" }}
+            >
+               <ReactMarkdown remarkPlugins={[remarkGfm]}>{generatedText}</ReactMarkdown>
+            </div>
           </div>
         ) : (
-          <p className="text-gray-500 dark:text-gray-500 italic text-center py-10">
-            O texto acadêmico gerado aparecerá aqui em formato Markdown.
-          </p>
+          <div 
+            className="bg-white dark:bg-gray-100 p-8 rounded shadow-sm h-full flex items-center justify-center"
+            style={{ 
+              backgroundImage: "linear-gradient(to bottom, #f9f9f9 0%, white 100%)",
+              border: "1px solid #e0e0e0"
+            }}
+          >
+            <p className="text-gray-500 dark:text-gray-500 italic text-center">
+              O texto acadêmico gerado aparecerá aqui em formato Markdown.
+            </p>
+          </div>
         )}
-    </div>
+      </div>
 
-    {generatedText && !isLoadingGenerate && !isLoadingExpand && !isLoadingDeepen && (
+      {generatedText && !isLoadingGenerate && !isLoadingExpand && !isLoadingDeepen && (
         <div className="flex justify-between items-center px-6 py-3 border-t border-gray-200/20 dark:border-gray-700/30 text-sm text-gray-400 dark:text-gray-400">
-            <div>
-                Estilo: <span className="font-semibold text-primary-foreground/80 dark:text-primary-foreground/80">{citationStyle}</span>
-            </div>
-            <div>
-                Idioma: <span className="font-semibold text-primary-foreground/80 dark:text-primary-foreground/80">{getLanguageName(targetLanguage)}</span>
-            </div>
+          <div>
+            Estilo: <span className="font-semibold text-primary-foreground/80 dark:text-primary-foreground/80">{citationStyle}</span>
+          </div>
+          <div>
+            Idioma: <span className="font-semibold text-primary-foreground/80 dark:text-primary-foreground/80">{getLanguageName(targetLanguage)}</span>
+          </div>
         </div>
-    )}
-  </div>
-
+      )}
+    </div>
+  
 
   {/* Refinement Options */}
   <div className="mt-6 space-y-4">
