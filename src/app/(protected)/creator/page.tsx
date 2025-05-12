@@ -557,39 +557,7 @@ const DeepPenAIApp = () => {
 
  return (
  <div className="flex flex-col min-h-screen bg-background text-foreground font-sans">
- {/* Header */}
- <header className="bg-card/80 backdrop-blur-lg shadow-lg p-4 fixed top-0 left-0 right-0 z-10 border-b border-border">
- <div className="container mx-auto flex items-center justify-between">
- <div className="flex items-center gap-2">
- <Zap className="text-primary h-6 w-6"/>
- <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent">
- DeepPenAI
- </h1>
- </div>
-
- {/* Language Selection */}
- <Select
- value={targetLanguage}
- onValueChange={value => setTargetLanguage(value as LanguageCode)}
- >
- <SelectTrigger className="w-[180px] text-sm py-2 rounded-md border-input bg-background shadow-sm">
- <Languages className="h-4 w-4 mr-2 text-primary"/>
- <SelectValue placeholder="Selecionar Idioma"/>
- </SelectTrigger>
- <SelectContent className="bg-popover text-popover-foreground border-border shadow-md">
- {(Object.keys(languageMap) as LanguageCode[]).map(langCode => (
- <SelectItem
- key={langCode}
- value={langCode}
- className="hover:bg-accent/20 focus:bg-accent/30"
- >
- {languageMap[langCode]}
- </SelectItem>
- ))}
- </SelectContent>
- </Select>
- </div>
- </header>
+  
 
  {/* Main Content */}
  <main className="container mx-auto px-4 py-20">
@@ -638,7 +606,7 @@ const DeepPenAIApp = () => {
 
  {/* File Upload Tab */}
  <TabsContent value="file">
- <Card className="rounded-xl shadow-lg overflow-hidden border-t-4 border-primary/80 bg-card/70 backdrop-blur-md border-border/50 mt-4">
+ <Card className="rounded-xl shadow-lg overflow-hidden border-t-4 bg-card/70 backdrop-blur-md border-border/50 mt-4">
  <CardHeader className="bg-gradient-to-r from-primary/10 via-secondary/5 to-transparent p-6 border-b border-border/30">
  <div className="flex items-center gap-4">
  <div className="bg-gradient-to-br from-primary to-accent text-primary-foreground h-12 w-12 rounded-full flex items-center justify-center font-bold text-2xl shadow-lg">
@@ -800,14 +768,31 @@ const DeepPenAIApp = () => {
  <Label className="block mb-2 font-semibold">Idioma de Geração</Label>
  <div className="flex items-center p-3.5 bg-muted/30 rounded-md border border-input shadow-sm backdrop-blur-sm">
  <Languages className="text-primary h-6 w-6 mr-3"/>
- <span className="font-medium text-primary">
- {getLanguageName(targetLanguage)}
- </span>
+ {/* Language Selection */}
+ <Select
+ value={targetLanguage}
+ onValueChange={value => setTargetLanguage(value as LanguageCode)}
+ >
+ <SelectTrigger className="w-[180px] text-sm py-2 rounded-md border-input bg-background shadow-sm"> 
+ <SelectValue placeholder="Selecionar Idioma"/>
+ </SelectTrigger>
+ <SelectContent className="bg-popover text-popover-foreground border-border shadow-md">
+ {(Object.keys(languageMap) as LanguageCode[]).map(langCode => (
+ <SelectItem
+ key={langCode}
+ value={langCode}
+ className="hover:bg-accent/20 focus:bg-accent/30"
+ >
+ {languageMap[langCode]}
+ </SelectItem>
+ ))}
+ </SelectContent>
+ </Select>
  </div>
  <p className="mt-1 text-xs text-muted-foreground">
  {activeTab === 'file'
    ? `Detectado: ${getLanguageName(detectedLanguage)}.`
-   : `Altere no seletor no topo.`}
+   : `Use seletor para alterar o idioma.`}
  </p>
  </div>
  <div>

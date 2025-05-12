@@ -195,7 +195,7 @@ const LandingPage = () => {
           </div>
            <div className="text-center mt-12">
             <Button size="lg" asChild className="shadow-lg hover:shadow-xl transition-shadow">
-              <Link href="/app">
+              <Link href="/creator">
                 Experimente Agora Gratuitamente <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
             </Button>
@@ -232,7 +232,7 @@ const LandingPage = () => {
       <footer className="py-8 border-t border-border">
         <div className="container mx-auto px-4 text-center text-muted-foreground">
           <p className="text-sm">&copy; {new Date().getFullYear()} DeepPenAI. Todos os direitos reservados.</p>
-          <Link href="/app" className="text-sm text-primary hover:underline mt-2 inline-block">
+          <Link href="/creator" className="text-sm text-primary hover:underline mt-2 inline-block">
             Acessar a Ferramenta Principal
           </Link>
         </div>
