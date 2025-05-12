@@ -2,12 +2,12 @@ import { Metadata } from "next";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { db } from "@/services/db";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import { notFound } from "next/navigation";
+import { Toaster } from "@/components/ui/toaster";
+import { GeneratedWorkContent } from "./generated-work-content";
 
 export const metadata: Metadata = {
   title: "Trabalho Gerado | DeepPenAI",
@@ -38,20 +38,16 @@ export default async function GeneratedWorkPage({
       <Card>
         <CardHeader>
           <div className="flex justify-between items-center">
-            <CardTitle>Conteúdo Gerado</CardTitle>
-            <div className="text-sm text-muted-foreground">
-              <p>Idioma: {work.language}</p>
-              <p>Estilo de Citação: {work.citationStyle}</p>
+            <CardTitle>{work.sourceType}</CardTitle>
+            <div className="text-sm text-muted-foreground">  
               <p>Gerado em: {new Date(work.createdAt).toLocaleDateString()}</p>
             </div>
           </div>
-        </CardHeader>
-        <CardContent>
-          <div className="prose prose-lg dark:prose-invert max-w-none">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{work.generatedText}</ReactMarkdown>
-          </div>
-        </CardContent>
+        </CardHeader>  
+
+        <GeneratedWorkContent work={work} />
       </Card>
+      <Toaster />
     </div>
   );
 } 
