@@ -8,6 +8,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Toaster } from "@/components/ui/toaster";
 import { GeneratedWorkContent } from "./generated-work-content";
+import { DashboardLayout } from "@/components/layout/DashboardLayout";
 
 export const metadata: Metadata = {
   title: "Trabalho Gerado | DeepPenAI",
@@ -27,6 +28,7 @@ export default async function GeneratedWorkPage({
   }
 
   return (
+    <DashboardLayout user={session?.user!}> 
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">{work.topic}</h1>
@@ -49,5 +51,6 @@ export default async function GeneratedWorkPage({
       </Card>
       <Toaster />
     </div>
+    </DashboardLayout>
   );
 } 

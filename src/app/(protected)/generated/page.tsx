@@ -5,6 +5,7 @@ import { db } from "@/services/db";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { DashboardLayout } from "@/components/layout/DashboardLayout";
 
 export const metadata: Metadata = {
   title: "Trabalhos Gerados | DeepPenAI",
@@ -16,6 +17,7 @@ export default async function GeneratedWorksPage() {
   const generatedWorks = await db.getGeneratedWorksByUserId(session?.user?.id || "");
 
   return (
+    <DashboardLayout user={session?.user!}>
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Trabalhos Gerados</h1>
@@ -49,5 +51,6 @@ export default async function GeneratedWorksPage() {
         ))}
       </div>
     </div>
+    </DashboardLayout>
   );
 } 

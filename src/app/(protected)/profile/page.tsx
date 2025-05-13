@@ -2,12 +2,16 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { DashboardLayout } from "@/components/layout/DashboardLayout";
+ 
 
 export default async function ProfilePage() {
   const session = await getServerSession(authOptions);
   const user = session?.user;
 
   return (
+    
+    <DashboardLayout user={session?.user!}>
     <div className="max-w-2xl mx-auto">
       <Card>
         <CardHeader>
@@ -30,5 +34,6 @@ export default async function ProfilePage() {
         </CardContent>
       </Card>
     </div>
+    </DashboardLayout>
   );
 } 

@@ -5,7 +5,7 @@ import { ProfileForm } from "@/components/settings/ProfileForm";
 import { PreferencesForm } from "@/components/settings/PreferencesForm";
 import { PasswordForm } from "@/components/settings/PasswordForm";
 import { Toaster } from "@/components/ui/toaster";
-
+import { DashboardLayout } from "@/components/layout/DashboardLayout";
 export default async function SettingsPage() {
   const session = await getServerSession(authOptions);
 
@@ -14,10 +14,11 @@ export default async function SettingsPage() {
   }
 
   const initialPreferences = {
-    emailNotifications: true, // TODO: Get from database
+    emailNotifications: true,  
   };
 
   return (
+    <DashboardLayout user={session?.user!}> 
     <div className="container max-w-4xl py-6 space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Configurações</h1>
@@ -64,5 +65,6 @@ export default async function SettingsPage() {
 
       <Toaster />
     </div>
+    </DashboardLayout>
   );
 } 

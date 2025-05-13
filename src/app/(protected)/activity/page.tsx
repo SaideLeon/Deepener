@@ -3,11 +3,12 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Clock } from "lucide-react";
-
+import { DashboardLayout } from "@/components/layout/DashboardLayout";
 export default async function ActivityPage() {
   const session = await getServerSession(authOptions);
 
   return (
+    <DashboardLayout user={session?.user!}> 
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Atividades</h1>
@@ -59,5 +60,6 @@ export default async function ActivityPage() {
         </Card>
       </div>
     </div>
+    </DashboardLayout>
   );
 } 
