@@ -93,5 +93,28 @@ body {
   }
 }
 
+.scroll-ativada {
+  scrollbar-width: auto !important;         
+  -ms-overflow-style: auto !important;     
+}
 
-    
+.scroll-ativada::-webkit-scrollbar {
+  display: block !important;         
+  width: 8px;
+}
+
+.scroll-ativada::-webkit-scrollbar-thumb {
+  background-color: #999;
+  border-radius: 4px;
+}
+
+
+html {
+  overflow: auto;
+  scrollbar-width: none !important;           
+  -ms-overflow-style: none !important;         
+}
+
+html::-webkit-scrollbar {
+  display: none !important;                   
+}   

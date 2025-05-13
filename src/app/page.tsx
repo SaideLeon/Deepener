@@ -88,7 +88,7 @@ const LandingPage = () => {
         
       </header>
 
-      <main className="flex-1">
+      <main className="flex-1 scroll-ativada">
         <section className="container mx-auto px-4 py-20 text-center">
           <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary via-accent to-primary">
             Transforme simples tema em um trabalho acadêmico completo
