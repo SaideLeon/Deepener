@@ -1,12 +1,26 @@
-
 'use client';
 
 import React from 'react';
-import { Document, Packer, Paragraph, TextRun, AlignmentType, HeadingLevel, Indent, Spacing, ITextRunOptions } from 'docx';
-import { parse } from 'marked';
+import {
+  Document,
+  Packer,
+  Paragraph,
+  TextRun,
+  AlignmentType,
+  Table,
+  TableRow,
+  TableCell,
+  WidthType,
+  BorderStyle,
+  // ImageRun (para futuro suporte a fórmulas como imagens)
+} from 'docx';
+import MarkdownIt from 'markdown-it';
 import { Button } from "@/components/ui/button";
 import { Download, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+
+// Use IRunOptions instead of ITextRunOptions (lint fix)
+import type { IRunOptions } from 'docx';
 
 interface MarkdownToDocxProps {
   markdownContent: string | null;
@@ -18,6 +32,17 @@ const DEFAULT_FONT = 'Times New Roman';
 const DEFAULT_FONT_SIZE = 24; // 12pt * 2 (half-points)
 const CODE_FONT = 'Courier New';
 const CODE_FONT_SIZE = 22; // 11pt * 2
+
+// 1.5 line spacing in docx is 360 (240 = single, 480 = double)
+const LINE_SPACING_1_5 = 360;
+
+// Instância global do markdown-it (sem plugins por enquanto)
+const md = new MarkdownIt({
+  html: false,
+  linkify: true,
+  typographer: true,
+  breaks: true,
+});
 
 export default function MarkdownToDocx({ markdownContent, fileName = "documento_deeppen_ai", disabled = false }: MarkdownToDocxProps) {
   const { toast } = useToast();
@@ -36,14 +61,19 @@ export default function MarkdownToDocx({ markdownContent, fileName = "documento_
     setIsConverting(true);
 
     try {
+      // Corrige listas numeradas em negrito (mesmo fix do marked)
       const corrigido = markdownContent.replace(/^(\d+)\.\s*\*\*(.*?)\*\*/gm, '**$1. $2**');
-      const html = parse(corrigido, { gfm: true, breaks: true }) as string;
+      // Converte markdown para HTML usando markdown-it
+      const html = md.render(corrigido);
+
+      // Parseia HTML para DOM
       const parser = new DOMParser();
       const docHTML = parser.parseFromString(html, 'text/html');
-      const docxElements: Paragraph[] = [];
+      const docxElements: (Paragraph | Table)[] = [];
 
-      const parseInlineElements = (node: ChildNode): ITextRunOptions[] => {
-        const runsOptions: ITextRunOptions[] = [];
+      // Helper para parsear elementos inline (bold, italic, etc)
+      const parseInlineElements = (node: ChildNode): IRunOptions[] => {
+        const runsOptions: IRunOptions[] = [];
         node.childNodes.forEach(childNode => {
           if (childNode.nodeType === Node.TEXT_NODE) {
             runsOptions.push({ text: childNode.textContent || '', font: DEFAULT_FONT, size: DEFAULT_FONT_SIZE });
@@ -53,26 +83,74 @@ export default function MarkdownToDocx({ markdownContent, fileName = "documento_
 
             if (tagName === 'br') {
               runsOptions.push({ text: '', break: 1, font: DEFAULT_FONT, size: DEFAULT_FONT_SIZE });
+            } else if (tagName === 'strong' || tagName === 'b') {
+              const childrenAsOptions: IRunOptions[] = parseInlineElements(element);
+              runsOptions.push(...childrenAsOptions.map(opt => ({ ...opt, bold: true })));
+            } else if (tagName === 'em' || tagName === 'i') {
+              const childrenAsOptions: IRunOptions[] = parseInlineElements(element);
+              runsOptions.push(...childrenAsOptions.map(opt => ({ ...opt, italics: true })));
+            } else if (tagName === 'u') {
+              const childrenAsOptions: IRunOptions[] = parseInlineElements(element);
+              runsOptions.push(...childrenAsOptions.map(opt => ({ ...opt, underline: {} })));
+            } else if (tagName === 'code') {
+              const childrenAsOptions: IRunOptions[] = parseInlineElements(element);
+              runsOptions.push(...childrenAsOptions.map(opt => ({ ...opt, font: CODE_FONT, size: CODE_FONT_SIZE })));
+            } else if (tagName === 'span' && element.classList.contains('katex')) {
+              // Futuro: aqui vamos converter a fórmula KaTeX em imagem e inserir via ImageRun
+              // Por enquanto, insere o LaTeX como texto simples
+              runsOptions.push({ text: element.textContent || '', font: CODE_FONT, size: CODE_FONT_SIZE });
             } else {
-              const childrenAsOptions: ITextRunOptions[] = parseInlineElements(element);
-
-              if (tagName === 'strong' || tagName === 'b') {
-                runsOptions.push(...childrenAsOptions.map(opt => ({ ...opt, bold: true })));
-              } else if (tagName === 'em' || tagName === 'i') {
-                runsOptions.push(...childrenAsOptions.map(opt => ({ ...opt, italics: true })));
-              } else if (tagName === 'u') {
-                runsOptions.push(...childrenAsOptions.map(opt => ({ ...opt, underline: {} })));
-              } else if (tagName === 'code') {
-                runsOptions.push(...childrenAsOptions.map(opt => ({ ...opt, font: CODE_FONT, size: CODE_FONT_SIZE })));
-              } else { 
-                runsOptions.push(...childrenAsOptions);
-              }
+              // Default: processa filhos recursivamente
+              const childrenAsOptions: IRunOptions[] = parseInlineElements(element);
+              runsOptions.push(...childrenAsOptions);
             }
           }
         });
         return runsOptions;
       };
 
+      // Helper para parsear uma <table> em docx Table
+      const parseTable = (tableEl: HTMLTableElement): Table => {
+        const rows: TableRow[] = [];
+        const tableRows = Array.from(tableEl.querySelectorAll('tr'));
+        tableRows.forEach((tr) => {
+          const cells: TableCell[] = [];
+          const cellEls = Array.from(tr.children) as HTMLElement[];
+          cellEls.forEach((cellEl) => {
+            const cellRuns = parseInlineElements(cellEl);
+            cells.push(
+              new TableCell({
+                children: [
+                  new Paragraph({
+                    children: cellRuns.map(opt => new TextRun(opt)),
+                    alignment: AlignmentType.LEFT,
+                    spacing: { line: LINE_SPACING_1_5 },
+                  }),
+                ],
+                verticalAlign: "center",
+                margins: { top: 100, bottom: 100, left: 100, right: 100 },
+                width: { size: 5000, type: WidthType.DXA },
+              })
+            );
+          });
+          rows.push(new TableRow({ children: cells }));
+        });
+
+        return new Table({
+          rows,
+          width: { size: 100, type: WidthType.PERCENTAGE },
+          borders: {
+            top: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+            bottom: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+            left: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+            right: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+            insideHorizontal: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+            insideVertical: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+          },
+        });
+      };
+
+      // Main block-level parsing
       docHTML.body.childNodes.forEach(node => {
         if (node.nodeType !== Node.ELEMENT_NODE) return;
         const el = node as HTMLElement;
@@ -80,15 +158,15 @@ export default function MarkdownToDocx({ markdownContent, fileName = "documento_
 
         if (tagName.match(/^h[1-6]$/)) {
           const level = parseInt(tagName.substring(1), 10);
-          let headingLevel: HeadingLevel;
+          let headingLevel: "Heading1" | "Heading2" | "Heading3" | "Heading4" | "Heading5" | "Heading6" | "Title";
           switch (level) {
-            case 1: headingLevel = HeadingLevel.HEADING_1; break;
-            case 2: headingLevel = HeadingLevel.HEADING_2; break;
-            case 3: headingLevel = HeadingLevel.HEADING_3; break;
-            case 4: headingLevel = HeadingLevel.HEADING_4; break;
-            case 5: headingLevel = HeadingLevel.HEADING_5; break;
-            case 6: headingLevel = HeadingLevel.HEADING_6; break;
-            default: headingLevel = HeadingLevel.HEADING_1;
+            case 1: headingLevel = "Heading1"; break;
+            case 2: headingLevel = "Heading2"; break;
+            case 3: headingLevel = "Heading3"; break;
+            case 4: headingLevel = "Heading4"; break;
+            case 5: headingLevel = "Heading5"; break;
+            case 6: headingLevel = "Heading6"; break;
+            default: headingLevel = "Heading1";
           }
           const headingOptions = parseInlineElements(el);
           if (headingOptions.length > 0 || el.textContent?.trim()) {
@@ -96,81 +174,137 @@ export default function MarkdownToDocx({ markdownContent, fileName = "documento_
               children: headingOptions.map(opt => new TextRun(opt)),
               heading: headingLevel,
               alignment: tagName === 'h1' ? AlignmentType.CENTER : AlignmentType.LEFT,
+              spacing: { line: LINE_SPACING_1_5, after: 120 },
             }));
           }
         } else if (tagName === 'p') {
           const paragraphOptions = parseInlineElements(el);
           if (paragraphOptions.some(opt => (opt.text && opt.text.trim() !== '') || opt.break)) {
-             docxElements.push(new Paragraph({
-                children: paragraphOptions.map(opt => new TextRun(opt)),
-                alignment: AlignmentType.JUSTIFIED,
-                spacing: { after: 120 }
-             }));
-          } else if (el.innerHTML.trim() === '&nbsp;' || el.innerHTML.trim() === '') { 
             docxElements.push(new Paragraph({
-              children: [new TextRun({text: '', font: DEFAULT_FONT, size: DEFAULT_FONT_SIZE})],
+              children: paragraphOptions.map(opt => new TextRun(opt)),
               alignment: AlignmentType.JUSTIFIED,
-              spacing: { after: 120 }
-           }));
+              spacing: { line: LINE_SPACING_1_5, after: 120 }
+            }));
+          } else if (el.innerHTML.trim() === '&nbsp;' || el.innerHTML.trim() === '') {
+            docxElements.push(new Paragraph({
+              children: [new TextRun({ text: '', font: DEFAULT_FONT, size: DEFAULT_FONT_SIZE })],
+              alignment: AlignmentType.JUSTIFIED,
+              spacing: { line: LINE_SPACING_1_5, after: 120 }
+            }));
           }
         } else if (tagName === 'ul' || tagName === 'ol') {
-            Array.from(el.childNodes).forEach(liNode => {
-                if (liNode.nodeType === Node.ELEMENT_NODE && (liNode as HTMLElement).tagName.toLowerCase() === 'li') {
-                    const listItem = liNode as HTMLElement;
-                    const listItemOptions = parseInlineElements(listItem);
-                    if(listItemOptions.length > 0) {
-                        docxElements.push(new Paragraph({
-                            children: listItemOptions.map(opt => new TextRun(opt)),
-                            bullet: tagName === 'ul' ? { level: 0 } : undefined,
-                            numbering: tagName === 'ol' ? { reference: "default-numbering", level: 0 } : undefined,
-                            alignment: AlignmentType.JUSTIFIED,
-                            indent: { left: 720 },
-                            spacing: { after: 60 }
-                        }));
-                    }
-                }
-            });
+          Array.from(el.childNodes).forEach(liNode => {
+            if (liNode.nodeType === Node.ELEMENT_NODE && (liNode as HTMLElement).tagName.toLowerCase() === 'li') {
+              const listItem = liNode as HTMLElement;
+              const listItemOptions = parseInlineElements(listItem);
+              if (listItemOptions.length > 0) {
+                docxElements.push(new Paragraph({
+                  children: listItemOptions.map(opt => new TextRun(opt)),
+                  bullet: tagName === 'ul' ? { level: 0 } : undefined,
+                  numbering: tagName === 'ol' ? { reference: "default-numbering", level: 0 } : undefined,
+                  alignment: AlignmentType.JUSTIFIED,
+                  indent: { left: 720 },
+                  spacing: { line: LINE_SPACING_1_5, after: 60 }
+                }));
+              }
+            }
+          });
         } else if (tagName === 'hr') {
-            docxElements.push(new Paragraph({ // This is a simple horizontal line, customization might be needed
-                children: [new TextRun({text: "___________________________", font: DEFAULT_FONT, size: DEFAULT_FONT_SIZE })], // Simplistic HR
-                alignment: AlignmentType.CENTER,
-                spacing: { before: 240, after: 240 }
-            }));
+          docxElements.push(new Paragraph({
+            children: [new TextRun({ text: "___________________________", font: DEFAULT_FONT, size: DEFAULT_FONT_SIZE })],
+            alignment: AlignmentType.CENTER,
+            spacing: { line: LINE_SPACING_1_5, before: 240, after: 240 }
+          }));
+        } else if (tagName === 'table') {
+          docxElements.push(parseTable(el as HTMLTableElement));
         }
       });
 
       const doc = new Document({
         sections: [{ children: docxElements }],
         numbering: {
-            config: [
+          config: [
+            {
+              reference: "default-numbering",
+              levels: [
                 {
-                    reference: "default-numbering",
-                    levels: [
-                        {
-                            level: 0,
-                            format: "decimal",
-                            text: "%1.",
-                            alignment: AlignmentType.LEFT,
-                            style: {
-                                paragraph: {
-                                    indent: { left: 720, hanging: 360 },
-                                },
-                            },
-                        },
-                    ],
+                  level: 0,
+                  format: "decimal",
+                  text: "%1.",
+                  alignment: AlignmentType.LEFT,
+                  style: {
+                    paragraph: {
+                      indent: { left: 720, hanging: 360 },
+                    },
+                  },
                 },
-            ],
+              ],
+            },
+          ],
         },
         styles: {
-            paragraphStyles: [
-                { id: "Normal", name: "Normal", run: { font: DEFAULT_FONT, size: DEFAULT_FONT_SIZE }, paragraph: { alignment: AlignmentType.JUSTIFIED, spacing: { after: 120 }}},
-                { id: "Heading1", name: "Heading 1", basedOn: "Normal", next: "Normal", quickFormat: true, run: { size: 32, bold: true, font: DEFAULT_FONT }, paragraph: { alignment: AlignmentType.CENTER, spacing: { before: 240, after: 120 }}},
-                { id: "Heading2", name: "Heading 2", basedOn: "Normal", next: "Normal", quickFormat: true, run: { size: 28, bold: true, font: DEFAULT_FONT }, paragraph: { spacing: { before: 240, after: 120 }}},
-                { id: "Heading3", name: "Heading 3", basedOn: "Normal", next: "Normal", quickFormat: true, run: { size: DEFAULT_FONT_SIZE, bold: true, font: DEFAULT_FONT }, paragraph: { spacing: { before: 120, after: 60 }}},
-                { id: "Heading4", name: "Heading 4", basedOn: "Normal", next: "Normal", quickFormat: true, run: { size: DEFAULT_FONT_SIZE, bold: true, italics: true, font: DEFAULT_FONT }, paragraph: { spacing: { before: 120, after: 60 }}},
-                { id: "Heading5", name: "Heading 5", basedOn: "Normal", next: "Normal", quickFormat: true, run: { size: DEFAULT_FONT_SIZE, italics: true, font: DEFAULT_FONT }, paragraph: { spacing: { before: 120, after: 60 }}},
-                { id: "Heading6", name: "Heading 6", basedOn: "Normal", next: "Normal", quickFormat: true, run: { size: 22, italics: true, font: DEFAULT_FONT }, paragraph: { spacing: { before: 120, after: 60 }}},
-            ],
+          paragraphStyles: [
+            {
+              id: "Normal",
+              name: "Normal",
+              run: { font: DEFAULT_FONT, size: DEFAULT_FONT_SIZE },
+              paragraph: { alignment: AlignmentType.JUSTIFIED, spacing: { line: LINE_SPACING_1_5, after: 120 } }
+            },
+            {
+              id: "Heading1",
+              name: "Heading 1",
+              basedOn: "Normal",
+              next: "Normal",
+              quickFormat: true,
+              run: { size: 32, bold: true, font: DEFAULT_FONT },
+              paragraph: { alignment: AlignmentType.CENTER, spacing: { line: LINE_SPACING_1_5, before: 240, after: 120 } }
+            },
+            {
+              id: "Heading2",
+              name: "Heading 2",
+              basedOn: "Normal",
+              next: "Normal",
+              quickFormat: true,
+              run: { size: 28, bold: true, font: DEFAULT_FONT },
+              paragraph: { spacing: { line: LINE_SPACING_1_5, before: 240, after: 120 } }
+            },
+            {
+              id: "Heading3",
+              name: "Heading 3",
+              basedOn: "Normal",
+              next: "Normal",
+              quickFormat: true,
+              run: { size: DEFAULT_FONT_SIZE, bold: true, font: DEFAULT_FONT },
+              paragraph: { spacing: { line: LINE_SPACING_1_5, before: 120, after: 60 } }
+            },
+            {
+              id: "Heading4",
+              name: "Heading 4",
+              basedOn: "Normal",
+              next: "Normal",
+              quickFormat: true,
+              run: { size: DEFAULT_FONT_SIZE, bold: true, italics: true, font: DEFAULT_FONT },
+              paragraph: { spacing: { line: LINE_SPACING_1_5, before: 120, after: 60 } }
+            },
+            {
+              id: "Heading5",
+              name: "Heading 5",
+              basedOn: "Normal",
+              next: "Normal",
+              quickFormat: true,
+              run: { size: DEFAULT_FONT_SIZE, italics: true, font: DEFAULT_FONT },
+              paragraph: { spacing: { line: LINE_SPACING_1_5, before: 120, after: 60 } }
+            },
+            {
+              id: "Heading6",
+              name: "Heading 6",
+              basedOn: "Normal",
+              next: "Normal",
+              quickFormat: true,
+              run: { size: 22, italics: true, font: DEFAULT_FONT },
+              paragraph: { spacing: { line: LINE_SPACING_1_5, before: 120, after: 60 } }
+            },
+          ],
         },
       });
 
@@ -204,12 +338,12 @@ export default function MarkdownToDocx({ markdownContent, fileName = "documento_
   };
 
   return (
-    <Button 
-        onClick={gerarDoc} 
-        disabled={!markdownContent || isConverting || disabled}
-        variant="default" // Changed to default to use accent color as per theme
-        className="w-full py-3 bg-accent hover:bg-accent/90 text-accent-foreground"
-        aria-label="Baixar texto gerado como arquivo DOCX"
+    <Button
+      onClick={gerarDoc}
+      disabled={!markdownContent || isConverting || disabled}
+      variant="default"
+      className="w-full py-3 bg-accent hover:bg-accent/90 text-accent-foreground"
+      aria-label="Baixar texto gerado como arquivo DOCX"
     >
       {isConverting ? (
         <Loader2 className="mr-2 h-5 w-5 animate-spin" />
@@ -220,6 +354,3 @@ export default function MarkdownToDocx({ markdownContent, fileName = "documento_
     </Button>
   );
 }
-
-
-    
