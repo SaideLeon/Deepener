@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 export default async function GeneratedWorkPage({
   params,
 }: {
-  params: { id: string };
+  params: { id: string }
 }) {
   const session = await getServerSession(authOptions);
   const work = await db.getGeneratedWorkById(params.id);
@@ -53,4 +53,4 @@ export default async function GeneratedWorkPage({
     </div>
     </DashboardLayout>
   );
-} 
+}
