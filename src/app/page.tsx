@@ -15,10 +15,13 @@ const LandingPage = () => {
   const [email, setEmail] = useState('');
   const { toast } = useToast();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [loadingGoogle, setLoadingGoogle] = useState(false);
+  const [loadingLead, setLoadingLead] = useState(false);
 
-  const handleLeadSubmit = (e: FormEvent) => {
+  const handleLeadSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (email) {
+      setLoadingLead(true);
       try {
         const existingLeadsJSON = localStorage.getItem('capturedLeads');
         const existingLeads: string[] = existingLeadsJSON ? JSON.parse(existingLeadsJSON) : [];
@@ -51,6 +54,8 @@ const LandingPage = () => {
           description: "Não foi possível registrar seu email localmente.",
           variant: "destructive",
         });
+      } finally {
+        setLoadingLead(false);
       }
     } else {
       toast({
@@ -61,8 +66,13 @@ const LandingPage = () => {
     }
   };
 
-  const handleGoogleSignIn = () => {
-    signIn('google', { callbackUrl: '/dashboard' });
+  const handleGoogleSignIn = async () => {
+    setLoadingGoogle(true);
+    try {
+      await signIn('google', { callbackUrl: '/dashboard' });
+    } finally {
+      setLoadingGoogle(false);
+    }
   };
 
   return (
@@ -75,11 +85,9 @@ const LandingPage = () => {
           </Link>
 
           <nav className="flex items-center gap-4">
-          <Link href="/auth/signin">
-            <Button variant="ghost">Entrar</Button>
-          </Link>
-          <Button onClick={handleGoogleSignIn} variant="outline" className="gap-2">
-            <Icons.google className="h-4 w-4" />
+           
+          <Button onClick={handleGoogleSignIn} variant="outline" className="gap-2" disabled={loadingGoogle}>
+            {loadingGoogle ? <Icons.spinner className="animate-spin h-4 w-4" /> : <Icons.google className="h-4 w-4" />}
             Entrar com Google
           </Button>
         </nav>
@@ -98,16 +106,15 @@ const LandingPage = () => {
             (imagem, PDF) ou de tema fornecido.  Economize tempo, melhore a qualidade e alcance a excelência.
           </p> 
           <div className="flex flex-col items-center gap-4">
-            <Button onClick={handleGoogleSignIn} size="lg" variant="outline" className="gap-2">
-              <Icons.google className="h-5 w-5" />
+            <Button onClick={handleGoogleSignIn} size="lg" variant="outline" className="gap-2" disabled={loadingGoogle}>
+              {loadingGoogle ? <Icons.spinner className="animate-spin h-5 w-5" /> : <Icons.google className="h-5 w-5" />}
               Continuar com Google
             </Button>
-            <p className="text-sm text-muted-foreground">
-              ou
-            </p>
-            <Link href="/auth/signin">
-              <Button size="lg">Criar Conta</Button>
-            </Link>
+            <Button size="lg" variant="secondary" asChild className="shadow-lg hover:shadow-xl transition-shadow">
+              <Link href="/creator">
+                Experimente Agora Gratuitamente <ArrowRight className="ml-2 h-5 w-5" />
+              </Link>
+            </Button>
           </div>
         </section>
 
@@ -220,8 +227,8 @@ const LandingPage = () => {
               className="flex-grow py-3 px-4 text-lg bg-background/80 text-foreground placeholder:text-muted-foreground focus:bg-background"
               required
             />
-            <Button type="submit" size="lg" variant="secondary" className="shadow-md hover:shadow-lg">
-              Inscrever-se
+            <Button type="submit" size="lg" variant="secondary" className="shadow-md hover:shadow-lg" disabled={loadingLead}>
+              {loadingLead ? <Icons.spinner className="animate-spin h-5 w-5" /> : 'Inscrever-se'}
             </Button>
           </form>
         </div>

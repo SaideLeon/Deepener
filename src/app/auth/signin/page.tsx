@@ -1,6 +1,6 @@
 'use client'
 
-import { signIn, ClientSafeProvider } from "next-auth/react"
+import { signIn, ClientSafeProvider, getProviders } from "next-auth/react"
 import { useSearchParams } from "next/navigation"
 import { useEffect, useState } from "react"
 import { FcGoogle } from "react-icons/fc"
@@ -9,10 +9,16 @@ interface Props {
   providers: Record<string, ClientSafeProvider> | null
 }
 
-export default function SignInForm({ providers }: Props) {
+export default async function SignInPage() {
+  const providers = await getProviders();
+  return <SignInForm providers={providers} />;
+}
+
+function SignInForm({ providers }: Props) {
   const searchParams = useSearchParams()
   const errorParam = searchParams?.get("error")
   const [error, setError] = useState("")
+  const [agreed, setAgreed] = useState(false)
 
   useEffect(() => {
     if (errorParam === "OAuthSignin") {
@@ -23,34 +29,43 @@ export default function SignInForm({ providers }: Props) {
   }, [errorParam])
 
   return (
-    <div className="space-y-4">
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded text-sm">
-          {error}
-        </div>
-      )}
+    <div className="flex items-center justify-center min-h-screen bg-gray-50 p-4">
+      <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-md w-full max-w-md">
+        <h2 className="mb-6 text-center text-2xl font-bold text-gray-900">Faça login</h2>
+        
+        <div className="space-y-6">
+          {error && (
+            <div className="flex items-center gap-2 rounded-lg border border-red-300 bg-red-100 px-4 py-3 text-sm text-red-700 shadow-sm">
+              {error}
+            </div>
+          )}
 
-      {providers &&
-        Object.values(providers).map((provider) =>
-          provider.name === "Google" ? (
-            <button
-              key={provider.id}
-              onClick={() => signIn(provider.id, { callbackUrl: "/dashboard" })}
-              className="flex items-center justify-center w-full gap-2 rounded-lg bg-blue-600 px-4 py-2 text-white transition hover:bg-blue-700"
-            >
-              <FcGoogle className="h-5 w-5" />
-              Entrar com Google
-            </button>
-          ) : (
-            <button
-              key={provider.id}
-              onClick={() => signIn(provider.id)}
-              className="w-full rounded-lg bg-gray-800 px-4 py-2 text-white hover:bg-gray-900 transition"
-            >
-              Entrar com {provider.name}
-            </button>
-          )
-        )}
+          <button
+            onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
+            className="group flex w-full items-center justify-center gap-3 rounded-xl bg-white px-5 py-3 text-sm font-medium text-gray-700 shadow-md transition hover:shadow-lg hover:bg-gray-50 border border-gray-200"
+            disabled={!agreed}
+          >
+            <FcGoogle className="h-5 w-5 text-red-500" />
+            <span className="group-hover:text-blue-600 transition">Entrar com Google</span>
+          </button>
+        </div>
+        
+        <div className="mt-6 flex items-center gap-2 justify-center">
+          <input
+            id="agree"
+            type="checkbox"
+            checked={agreed}
+            onChange={e => setAgreed(e.target.checked)}
+            className="accent-blue-600 h-4 w-4 rounded border-gray-300 focus:ring-blue-500"
+          />
+          <label htmlFor="agree" className="text-sm text-gray-600 select-none">
+            Eu concordo com a
+            <a href="/politica-e-termos" target="_blank" rel="noopener noreferrer" className="font-medium text-blue-600 hover:text-blue-500 ml-1">
+              Política de Privacidade e os Termos de Serviço da DeepPenAI
+            </a>
+          </label>
+        </div>
+      </div>
     </div>
-  )
+  );
 }
