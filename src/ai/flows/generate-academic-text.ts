@@ -1,57 +1,30 @@
 // src/ai/flows/generate-academic-text.ts
 'use server';
 
-/**
- * @fileOverview This file defines a Genkit flow for generating academic text based on instructions, a specified language, and a citation style.
- * The flow aims to produce well-structured academic content with detailed explanations under each heading, adhering to the chosen citation style.
- *
- * - generateAcademicText - A function that initiates the academic text generation process.
- * - GenerateAcademicTextInput - The input type for the generateAcademicText function.
- * - GenerateAcademicTextOutput - The return type for the generateAcademicText function.
- */
+import { ai } from '@/ai/genkit';
+import { z } from 'genkit';
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
-
-// Define the input schema
 const GenerateAcademicTextInputSchema = z.object({
-  instructions: z
-    .string()
-    .describe(
-      'The instructions for the academic text generation, extracted from the image or provided by the user.'
-    ),
-  targetLanguage: z
-    .string()
-    .describe('The target language for the generated academic text (e.g., "en", "es", "fr", "pt-BR", "pt-PT").'),
-  citationStyle: z
-    .enum(["APA", "ABNT", "Sem Normas"])
-    .default("Sem Normas")
-    .describe('The citation style to be used for the academic text. Options: "APA", "ABNT", "Sem Normas" (default).'),
+  instructions: z.string().describe('The full academic instruction set to be split and processed.'),
+  targetLanguage: z.string().describe('The language of the academic text (e.g., "pt-BR", "en", etc.).'),
+  citationStyle: z.enum(["APA", "ABNT", "Sem Normas"]).default("Sem Normas").describe('The citation style.'),
 });
-export type GenerateAcademicTextInput = z.infer<
-  typeof GenerateAcademicTextInputSchema
->;
+export type GenerateAcademicTextInput = z.infer<typeof GenerateAcademicTextInputSchema>;
 
-// Define the output schema
 const GenerateAcademicTextOutputSchema = z.object({
-  academicText: z.string().describe('The generated academic text, formatted in Markdown, with well-developed sections under each heading, following the specified citation style.'),
+  academicText: z.string().describe('The complete academic text, in Markdown, with developed sections.'),
 });
-export type GenerateAcademicTextOutput = z.infer<
-  typeof GenerateAcademicTextOutputSchema
->;
+export type GenerateAcademicTextOutput = z.infer<typeof GenerateAcademicTextOutputSchema>;
 
-// Exported function to call the flow
-export async function generateAcademicText(
-  input: GenerateAcademicTextInput
-): Promise<GenerateAcademicTextOutput> {
+export async function generateAcademicText(input: GenerateAcademicTextInput): Promise<GenerateAcademicTextOutput> {
   return generateAcademicTextFlow(input);
 }
 
-// Define the prompt
+// Prompt permanece o mesmo
 const generateAcademicTextPrompt = ai.definePrompt({
   name: 'generateAcademicTextPrompt',
-  input: {schema: GenerateAcademicTextInputSchema},
-  output: {schema: GenerateAcademicTextOutputSchema},
+  input: { schema: GenerateAcademicTextInputSchema },
+  output: { schema: GenerateAcademicTextOutputSchema },
   prompt: `You are an expert academic writer. Your task is to generate a comprehensive academic text based on the provided instructions, in the specified target language, and adhering to the chosen citation style. The output must be formatted in Markdown.
 
 Instructions: {{{instructions}}}
@@ -71,15 +44,43 @@ When generating the text, please follow these steps:
 `,
 });
 
-// Define the flow
+// Novo flow com fragmentação
 const generateAcademicTextFlow = ai.defineFlow(
   {
     name: 'generateAcademicTextFlow',
     inputSchema: GenerateAcademicTextInputSchema,
     outputSchema: GenerateAcademicTextOutputSchema,
   },
-  async input => {
-    const {output} = await generateAcademicTextPrompt(input);
-    return output!;
+  async ({ instructions, targetLanguage, citationStyle }) => {
+    // Divide por tópicos com base em quebras de linha duplas
+    const fragments = instructions
+      .split(/\n{2,}/)
+      .map(s => s.trim())
+      .filter(Boolean);
+
+    const parts: string[] = [];
+
+    for (const [index, fragment] of fragments.entries()) {
+      const partialInput = {
+        instructions: fragment,
+        targetLanguage,
+        citationStyle,
+      };
+
+      const { output } = await generateAcademicTextPrompt(partialInput);
+
+      if (output?.academicText) {
+        parts.push(output.academicText.trim());
+      }
+
+      // Aguarda 1 segundo entre partes (para evitar sobrecarga/token burst)
+      if (index < fragments.length - 1) {
+        await new Promise(res => setTimeout(res, 1000));
+      }
+    }
+
+    return {
+      academicText: parts.join('\n\n'),
+    };
   }
 );
