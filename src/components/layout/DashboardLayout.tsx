@@ -43,7 +43,7 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
         </aside>
 
         {/* Conteúdo principal */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-5 md:p-6 md:ml-4">
+        <main className="flex-1 overflow-y-auto p-1 sm:p-5 md:p-6 md:ml-4">
           <div className="max-w-7xl mx-auto">
             {children}
           </div>

@@ -40,7 +40,7 @@ export function GeneratedWorkContent({ work }: GeneratedWorkContentProps) {
   };
 
   return (
-    <div className="sm:ml-1 sm:mr-1 bg-black/60 dark:bg-gray-800 rounded-xl shadow-md overflow-hidden transition-colors duration-300">
+    <div className="min-h-[400px] sm:ml-1 sm:mr-1 bg-black/60 dark:bg-gray-800 rounded-xl shadow-md overflow-hidden transition-colors duration-300">
       <div className="flex justify-between items-center px-6 py-4 bg-gray-50/10 dark:bg-gray-900/50 border-b border-gray-200/20 dark:border-gray-700/30">
         <h3 className="text-xl font-semibold text-gray-100 dark:text-gray-100">
           Texto Acadêmico Gerado
@@ -65,9 +65,9 @@ export function GeneratedWorkContent({ work }: GeneratedWorkContentProps) {
         </div>
       </div>
 
-      <div className="p-6 min-h-[200px]">
+      <div className="p-1 sm:p-6 min-h-[300px]">
         <div 
-          className="bg-white dark:bg-gray-100 p-8 rounded shadow-sm overflow-auto max-h-[600px]"
+          className="bg-white dark:bg-gray-100 p-2 sm:p-8 rounded shadow-sm overflow-auto max-h-[600px]"
           style={{ 
             backgroundImage: "linear-gradient(to bottom, #f9f9f9 0%, white 100%)",
             border: "1px solid #e0e0e0"

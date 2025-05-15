@@ -572,7 +572,7 @@ const DeepPenAIApp = () => {
   <DashboardLayout user={session?.user!}>
   <div className="flex flex-col min-h-screen bg-background text-foreground font-sans">
   {/* Main Content */}
-  <main className="container mx-auto px-4 py-20">
+  <main className="container mx-auto px-1 sm:px-8 py-1">
   {/* Tabs for Input Method */}
   <Tabs
   value={activeTab}
@@ -735,7 +735,7 @@ const DeepPenAIApp = () => {
   </CardTitle>
   </div>
   </CardHeader>
-  <CardContent className="p-8 space-y-8">
+  <CardContent className="p-1 sm:p-8 space-y-8">
   {error && (
   <Alert variant="destructive" className="shadow-md bg-destructive/20 border-destructive/50 backdrop-blur-sm">
   <AlertCircle className="h-5 w-5"/>
@@ -878,7 +878,7 @@ const DeepPenAIApp = () => {
         )}
       </div>
 
-      <div className="p-6 min-h-[200px]">
+      <div className="p-1 sm:p-8 min-h-[200px]">
         {isLoadingGenerate || isLoadingExpand || isLoadingDeepen ? (
           <div className="flex flex-col items-center justify-center h-full py-10">
             <Loader2 className="h-10 w-10 animate-spin text-primary-foreground/80 dark:text-primary-foreground/80" />
@@ -890,7 +890,7 @@ const DeepPenAIApp = () => {
           </div>
         ) : generatedText ? (
           <div 
-            className="bg-white dark:bg-gray-100 p-8 rounded shadow-sm overflow-auto max-h-[600px]"
+            className="bg-white dark:bg-gray-100 p-1 sm:p-8 rounded shadow-sm overflow-auto max-h-[600px]"
             style={{ 
               backgroundImage: "linear-gradient(to bottom, #f9f9f9 0%, white 100%)",
               border: "1px solid #e0e0e0"
