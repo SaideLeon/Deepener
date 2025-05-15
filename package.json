@@ -3,15 +3,17 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
-    "dev:fast": "next dev --turbopack --no-lint",
-    "genkit:dev": "genkit start -- tsx src/ai/dev.ts",
-    "genkit:watch": "genkit start -- tsx --watch src/ai/dev.ts",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
-    "typecheck": "tsc --noEmit"
-  },
+  "dev": "next dev --turbopack",
+  "dev:fast": "next dev --turbopack --no-lint",
+  "genkit:dev": "genkit start -- tsx src/ai/dev.ts",
+  "genkit:watch": "genkit start -- tsx --watch src/ai/dev.ts",
+  "prisma:generate": "prisma generate",
+  "prisma:deploy": "prisma migrate deploy",
+  "build": "prisma generate && prisma migrate deploy && next build",
+  "start": "prisma generate && prisma migrate deploy && next start",
+  "lint": "next lint",
+  "typecheck": "tsc --noEmit"
+},
   "dependencies": {
     "@auth/prisma-adapter": "^2.9.1",
     "@genkit-ai/googleai": "^1.6.2",
