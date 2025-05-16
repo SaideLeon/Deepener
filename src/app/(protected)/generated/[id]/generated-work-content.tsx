@@ -1,3 +1,4 @@
+// src/app/(protected)/generated/[id]/generated-work-content.tsx
 'use client';
 
 import { Copy } from 'lucide-react';
