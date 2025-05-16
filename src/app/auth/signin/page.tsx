@@ -1,32 +1,32 @@
 'use client'
 
-import { signIn, ClientSafeProvider, getProviders } from "next-auth/react"
+import { Suspense } from "react"
+import { signIn } from "next-auth/react"
 import { useSearchParams } from "next/navigation"
 import { useEffect, useState } from "react"
 import { FcGoogle } from "react-icons/fc"
 
-interface Props {
-  providers: Record<string, ClientSafeProvider> | null
+export default function SignInPage() {
+  return (
+    <Suspense>
+      <SignInPageContent />
+    </Suspense>
+  );
 }
 
-export default async function SignInPage() {
-  const providers = await getProviders();
-  return <SignInForm providers={providers} />;
-}
-
-function SignInForm({ providers }: Props) {
-  const searchParams = useSearchParams()
-  const errorParam = searchParams?.get("error")
-  const [error, setError] = useState("")
-  const [agreed, setAgreed] = useState(false)
+function SignInPageContent() {
+  const searchParams = useSearchParams();
+  const errorParam = searchParams?.get("error");
+  const [error, setError] = useState("");
+  const [agreed, setAgreed] = useState(false);
 
   useEffect(() => {
     if (errorParam === "OAuthSignin") {
-      setError("Erro ao conectar com o Google. Tente novamente.")
+      setError("Erro ao conectar com o Google. Tente novamente.");
     } else if (errorParam) {
-      setError("Erro de autenticação. Verifique suas credenciais.")
+      setError("Erro de autenticação. Verifique suas credenciais.");
     }
-  }, [errorParam])
+  }, [errorParam]);
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-50 p-4">
