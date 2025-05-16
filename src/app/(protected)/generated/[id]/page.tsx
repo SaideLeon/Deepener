@@ -15,11 +15,12 @@ export const metadata: Metadata = {
   title: "Trabalho Gerado | DeepPenAI",
   description: "Visualização de trabalho gerado",
 };
-type GeneratedWorkPageProps = {
+export default async function GeneratedWorkPage({
+  params,
+}: {
   params: { id: string };
-};
+}) {
 
-export default async function GeneratedWorkPage({ params }: GeneratedWorkPageProps) {
   const session = await getServerSession(authOptions);
   const work = await db.getGeneratedWorkById(params.id);
 
