@@ -10,14 +10,17 @@ import Link from "next/link";
 import { db } from "@/services/db";
 import { notFound, redirect } from "next/navigation";
 
-export default async function EditPaperPage({ params }: { params: { id: string } }) {
+type Params = Promise<{ id: string}>;
+
+export default async function EditPaperPage({ params }: { params: Params }) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     throw new Error("Not authenticated");
   }
 
+  const resolvedParams = await params;
   const paper = await db.getPapersByUserId(session.user.id).then(
-    (papers) => papers.find((p) => p.id === params.id)
+    (papers) => papers.find((p) => p.id === resolvedParams.id)
   );
 
   if (!paper) {
@@ -35,20 +38,20 @@ export default async function EditPaperPage({ params }: { params: { id: string }
       throw new Error("Title and content are required");
     }
 
-    await db.updatePaper(params.id, {
+    await db.updatePaper(resolvedParams.id, {
       title,
       content,
       status,
     });
 
-    redirect(`/papers/${params.id}`);
+    redirect(`/papers/${resolvedParams.id}`);
   }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <Link href={`/papers/${params.id}`}>
+          <Link href={`/papers/${resolvedParams.id}`}>
             <Button variant="ghost" size="icon">
               <ArrowLeft className="h-4 w-4" />
             </Button>
@@ -102,7 +105,7 @@ export default async function EditPaperPage({ params }: { params: { id: string }
               </select>
             </div>
             <div className="flex justify-end space-x-4">
-              <Link href={`/papers/${params.id}`}>
+              <Link href={`/papers/${resolvedParams.id}`}>
                 <Button variant="outline">Cancelar</Button>
               </Link>
               <Button type="submit">Salvar Alterações</Button>

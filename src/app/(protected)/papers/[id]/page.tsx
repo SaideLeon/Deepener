@@ -10,15 +10,17 @@ import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+type Params = Promise<{ id: string }>;
 
-export default async function PaperPage({ params }: { params: { id: string } }) {
+export default async function PaperPage({ params }: { params: Params}) {
+  const resolvedParams = await params;
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     throw new Error("Not authenticated");
   }
 
   const paper = await db.getPapersByUserId(session.user.id).then(
-    (papers) => papers.find((p) => p.id === params.id)
+    (papers) => papers.find((p) => p.id === resolvedParams.id)
   );
 
   if (!paper) {
