@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/authOptions";
 import { userService } from "@/services/userService";
 import bcrypt from "bcryptjs";
 
@@ -38,4 +38,4 @@ export async function PATCH(request: Request) {
     console.error("[PASSWORD_UPDATE]", error);
     return new NextResponse("Internal error", { status: 500 });
   }
-} 
+}

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/authOptions";
 import { Navbar } from "@/components/layout/Navbar";
 
 export default async function ProtectedLayout({
@@ -20,4 +20,4 @@ export default async function ProtectedLayout({
       <main className="container mx-auto py-6">{children}</main>
     </>
   );
-} 
+}
