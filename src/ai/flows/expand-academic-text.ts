@@ -4,48 +4,54 @@
 /**
  * @fileOverview This file defines a Genkit flow for expanding existing academic text, maintaining a consistent citation style.
  * The flow identifies headings and their content, then elaborates on each section to provide more depth while adhering to the specified citation style.
+ *
+ * - expandAcademicText - A function that initiates the academic text expansion process.
+ * - ExpandAcademicTextInput - The input type for the expandAcademicText function.
+ * - ExpandAcademicTextOutput - The return type for the expandAcademicText function.
  */
 
-import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
+import {ai} from '@/ai/genkit';
+import {z} from 'genkit';
 
-// Delay para evitar sobrecarga do modelo
-const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
-// Regex compatível com ES5/ES2017 (sem flag 's')
-function splitMarkdownByHeadings(text: string) {
-  const sections: { heading: string; content: string }[] = [];
-  const regex = /(#+\s.*)([\s\S]*?)(?=\n#+\s|\n*$)/g;
-
-  let match;
-  while ((match = regex.exec(text)) !== null) {
-    const heading = match[1].trim();
-    const content = match[2].trim();
-    sections.push({ heading, content });
-  }
-
-  return sections;
-}
-
-// Esquema de entrada
+// Define the input schema
 const ExpandAcademicTextInputSchema = z.object({
-  academicText: z.string().describe('The existing academic text (in Markdown format) to be expanded.'),
-  targetLanguage: z.string().describe('The language of the academic text (e.g., "en", "es", "fr", "pt-BR", "pt-PT").'),
-  citationStyle: z.enum(["APA", "ABNT", "Sem Normas"]).default("Sem Normas").describe('The citation style to be maintained during expansion.'),
+  academicText: z
+    .string()
+    .describe(
+      'The existing academic text (in Markdown format) to be expanded.'
+    ),
+  targetLanguage: z
+    .string()
+    .describe('The language of the academic text (e.g., "en", "es", "fr", "pt-BR", "pt-PT").'),
+  citationStyle: z
+    .enum(["APA", "ABNT", "Sem Normas"])
+    .default("Sem Normas")
+    .describe('The citation style to be maintained during expansion. Options: "APA", "ABNT", "Sem Normas" (default).'),
 });
-export type ExpandAcademicTextInput = z.infer<typeof ExpandAcademicTextInputSchema>;
+export type ExpandAcademicTextInput = z.infer<
+  typeof ExpandAcademicTextInputSchema
+>;
 
-// Esquema de saída
+// Define the output schema
 const ExpandAcademicTextOutputSchema = z.object({
   expandedAcademicText: z.string().describe('The expanded academic text, formatted in Markdown, with more detailed content under each heading, maintaining the specified citation style.'),
 });
-export type ExpandAcademicTextOutput = z.infer<typeof ExpandAcademicTextOutputSchema>;
+export type ExpandAcademicTextOutput = z.infer<
+  typeof ExpandAcademicTextOutputSchema
+>;
 
-// Prompt original preservado
+// Exported function to call the flow
+export async function expandAcademicText(
+  input: ExpandAcademicTextInput
+): Promise<ExpandAcademicTextOutput> {
+  return expandAcademicTextFlow(input);
+}
+
+// Define the prompt
 const expandAcademicTextPrompt = ai.definePrompt({
   name: 'expandAcademicTextPrompt',
-  input: { schema: ExpandAcademicTextInputSchema },
-  output: { schema: ExpandAcademicTextOutputSchema },
+  input: {schema: ExpandAcademicTextInputSchema},
+  output: {schema: ExpandAcademicTextOutputSchema},
   prompt: `You are an expert academic editor specializing in elaborating and deepening existing content while maintaining stylistic consistency.
 Your task is to take the provided academic text, which is already structured with headings and content, and expand upon it significantly.
 When expanding, you must:
@@ -68,36 +74,15 @@ Return the fully expanded text in the 'expandedAcademicText' field.
 `,
 });
 
-// Fluxo principal com processamento por seção
+// Define the flow
 const expandAcademicTextFlow = ai.defineFlow(
   {
     name: 'expandAcademicTextFlow',
     inputSchema: ExpandAcademicTextInputSchema,
     outputSchema: ExpandAcademicTextOutputSchema,
   },
-  async (input) => {
-    const sections = splitMarkdownByHeadings(input.academicText);
-    let fullExpandedText = '';
-
-    for (const section of sections) {
-      const sectionText = `${section.heading}\n\n${section.content}`;
-      const { output } = await expandAcademicTextPrompt({
-        academicText: sectionText,
-        targetLanguage: input.targetLanguage,
-        citationStyle: input.citationStyle,
-      });
-
-      fullExpandedText += output?.expandedAcademicText.trim() + '\n\n';
-      await sleep(1000); // 1 segundo de pausa entre seções
-    }
-
-    return { expandedAcademicText: fullExpandedText.trim() };
+  async input => {
+    const {output} = await expandAcademicTextPrompt(input);
+    return output!;
   }
 );
-
-// Função exportada
-export async function expandAcademicText(
-  input: ExpandAcademicTextInput
-): Promise<ExpandAcademicTextOutput> {
-  return expandAcademicTextFlow(input);
-}
