@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import Image from "next/image";
 
 interface NavbarProps {
   user: User;
@@ -23,8 +24,16 @@ export function Navbar({ user }: NavbarProps) {
     <nav className="fixed top-0 left-0 right-0 z-50 border-b bg-background">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <Link href="/dashboard" className="flex items-center space-x-2">
-          <img src="/favicon.ico" alt="DeepPenAI Logo" className="h-6 w-6" />
-          <span className="font-bold text-xl bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent">DeepPenAI</span>
+          <Image
+            src="/favicon.ico"
+            alt="DeepPenAI Logo"
+            width={24}
+            height={24}
+            className="h-6 w-6"
+          />
+          <span className="font-bold text-xl bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent">
+            DeepPenAI
+          </span>
         </Link>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

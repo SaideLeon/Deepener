@@ -14,11 +14,15 @@ export const metadata: Metadata = {
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
-  const generatedWorks = await db.getGeneratedWorksByUserId(session?.user?.id || "");
-  const activityLogs = await db.getActivityLogsByUserId(session?.user?.id || "");
+  if (!session?.user) {
+    // Optionally, redirect to login or show an error message
+    return null;
+  }
+  const generatedWorks = await db.getGeneratedWorksByUserId(session.user.id);
+  const activityLogs = await db.getActivityLogsByUserId(session.user.id);
 
   return (
-    <DashboardLayout user={session?.user!}>
+    <DashboardLayout user={session.user}>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold">Dashboard</h1>
@@ -33,7 +37,7 @@ export default async function DashboardPage() {
               <CardTitle>Trabalhos</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold">{generatedWorks.length}</p>
+              <p className="text-2xl font-bold">{generatedWorks?.length ?? 0}</p>
               <p className="text-xs text-muted-foreground">
                 Total de trabalhos criados
               </p>

@@ -116,7 +116,7 @@ export const db = {
   async updateGeneratedWork(id: string, data: Partial<Omit<GeneratedWork, 'id' | 'createdAt' | 'updatedAt' | 'userId'>>) {
     // Remove undefined properties to satisfy Prisma's type requirements
     const cleanedData = Object.fromEntries(
-      Object.entries(data).filter(([_, v]) => v !== undefined)
+      Object.entries(data).filter(([, v]) => v !== undefined)
     );
     return prisma.generatedWork.update({
       where: { id },

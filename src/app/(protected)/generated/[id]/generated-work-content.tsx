@@ -15,9 +15,9 @@ interface GeneratedWorkContentProps {
 
 export function GeneratedWorkContent({ work }: GeneratedWorkContentProps) {
   const { toast } = useToast();
-  const [isLoadingGenerate, setIsLoadingGenerate] = useState<boolean>(false);
-  const [isLoadingExpand, setIsLoadingExpand] = useState<boolean>(false);
-  const [isLoadingDeepen, setIsLoadingDeepen] = useState<boolean>(false);
+  const [isLoadingGenerate] = useState<boolean>(false);
+  const [isLoadingExpand] = useState<boolean>(false);
+  const [isLoadingDeepen] = useState<boolean>(false);
 
   const copyToClipboard = () => {
     if (work.generatedText) {

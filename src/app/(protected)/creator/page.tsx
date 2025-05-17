@@ -67,6 +67,7 @@ import {
  type DetectTopicFromIndexInput,
 } from '@/ai/flows/detect-topic-flow';
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import Image from 'next/image';
 
 type CitationStyle = 'APA' | 'ABNT' | 'Sem Normas';
 type ActiveTab = 'file' | 'titles';
@@ -122,9 +123,11 @@ const DeepPenAIApp = () => {
 
  useEffect(() => {
    if (activeTab === 'file') {
-     setTargetLanguage(detectedLanguage || 'pt-PT');
+     const value = detectedLanguage ?? 'pt-PT';
+     setTargetLanguage(value);
+     setCurrentTextAreaValue(extractedInstructions ?? 'As instruções ou estrutura para geração do texto aparecerão aqui...');
    }
- }, [activeTab, detectedLanguage]);
+ }, [activeTab, detectedLanguage, extractedInstructions]);
 
  if (isLoading) {
    return (
@@ -469,7 +472,7 @@ const DeepPenAIApp = () => {
        description: `Trabalho ${type} salvo no banco de dados.`,
        className: 'bg-green-600 text-white',
      });
-   } catch (e) {
+   } catch {
      toast({
        title: 'Erro ao salvar automaticamente',
        description: 'Ocorreu um erro ao salvar o trabalho.',
@@ -520,12 +523,12 @@ const DeepPenAIApp = () => {
  className: 'bg-accent text-accent-foreground',
  })
  )
- .catch(err =>
- toast({
- title: 'Erro',
- description: 'Falha ao copiar texto.',
- variant: 'destructive',
- })
+ .catch(() =>
+  toast({
+    title: 'Erro',
+    description: 'Falha ao copiar texto.',
+    variant: 'destructive',
+  })
  );
  }
  };
@@ -542,7 +545,7 @@ const DeepPenAIApp = () => {
 
 
  return (
-  <DashboardLayout user={session?.user!}>
+  <DashboardLayout user={session?.user ?? undefined}>
   <div className="flex flex-col min-h-screen bg-background text-foreground font-sans">
   {/* Main Content */}
   <main className="container mx-auto px-1 sm:px-8 py-1">
@@ -627,12 +630,14 @@ const DeepPenAIApp = () => {
   </Label>
   {fileDataUri && file?.type.startsWith('image/') && (
   <div className="mt-4 border border-border/50 rounded-md overflow-hidden shadow-sm backdrop-blur-sm bg-background/30">
-  <img
-  data-ai-hint="document preview"
-  src={fileDataUri}
-  alt="Preview"
-  className="max-h-48 w-auto mx-auto"
-  />
+    <Image
+      data-ai-hint="document preview"
+      src={fileDataUri}
+      alt="Preview"
+      width={300}
+      height={192}
+      className="max-h-48 w-auto mx-auto"
+    />
   </div>
   )}
   <p className="mt-6 text-sm text-muted-foreground italic">

@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from "@/hooks/use-toast";
 import { signIn } from "next-auth/react";
 import { Icons } from "@/components/ui/icons";
+import Image from 'next/image';
 
 const LandingPage = () => {
   const [email, setEmail] = useState('');
@@ -78,7 +79,7 @@ const LandingPage = () => {
       <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 max-w-screen-2xl items-center justify-between"> 
       <Link href="/" className="flex items-center space-x-2">
-            <img src="/favicon.ico" alt="DeepPenAI Logo" className="h-6 w-6" />
+            <Image src="/favicon.ico" alt="DeepPenAI Logo" width={24} height={24} className="h-6 w-6" />
             <span className="font-bold text-xl bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent">DeepPenAI</span>
           </Link>
 
