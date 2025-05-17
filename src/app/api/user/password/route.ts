@@ -29,7 +29,7 @@ export async function PATCH(request: Request) {
 
     // TODO: Verify current password
     // For now, we'll just hash and update the new password
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await bcrypt.hash(newPassword, 10);
 
     // TODO: Update user password in database
     // For now, we'll just return success

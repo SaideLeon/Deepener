@@ -27,7 +27,7 @@ export default async function GeneratedWorkPage({ params }: { params: Params }) 
   }
 
   return (
-    <DashboardLayout user={session?.user!}> 
+    <DashboardLayout user={session?.user}> 
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">{work.topic}</h1>
@@ -46,7 +46,7 @@ export default async function GeneratedWorkPage({ params }: { params: Params }) 
           </div>
         </CardHeader>  
 
-        <GeneratedWorkContent work={work} />
+        <GeneratedWorkContent work={{ ...work, generationType: work.generationType ?? undefined }} />
       </Card>
       <Toaster />
     </div>

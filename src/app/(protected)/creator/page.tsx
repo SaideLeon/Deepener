@@ -1,35 +1,27 @@
 'use client';
 
-import React, {useState, useCallback, useEffect, ChangeEvent} from 'react';
+import React, {useState, useEffect, ChangeEvent} from 'react';
 import {
  BookOpen,
  Upload,
  Edit3,
  FileText,
- ChevronDown,
- Download,
+ Loader2,
+ Zap,
+ ListTree,
+ AlertCircle,
+ Languages,
+ Copy,
  Maximize2,
  Layers,
- Copy,
- AlertCircle,
- Loader2,
- CheckCircle,
- ListTree,
- Languages,
  Trash2,
- BrainCircuit,
- Palette,
- Settings,
- Zap,
 } from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {
  Card,
- CardContent,
- CardDescription,
- CardFooter,
  CardHeader,
  CardTitle,
+ CardContent,
 } from '@/components/ui/card';
 import {Input} from '@/components/ui/input';
 import {Label} from '@/components/ui/label';
@@ -53,32 +45,26 @@ import { Session } from "next-auth";
 import {
  extractInstructionsFromFile,
  type ExtractInstructionsFromFileInput,
- type ExtractInstructionsFromFileOutput,
 } from '@/ai/flows/extract-instructions-from-file';
 import {
  generateIndexFromTitles,
  type GenerateIndexFromTitlesInput,
- type GenerateIndexFromTitlesOutput,
 } from '@/ai/flows/generate-index-flow';
 import {
  generateAcademicText,
  type GenerateAcademicTextInput,
- type GenerateAcademicTextOutput,
 } from '@/ai/flows/generate-academic-text';
 import {
  expandAcademicText,
  type ExpandAcademicTextInput,
- type ExpandAcademicTextOutput,
 } from '@/ai/flows/expand-academic-text';
 import {
  deepenAcademicText,
  type DeepenAcademicTextInput,
- type DeepenAcademicTextOutput,
 } from '@/ai/flows/deepen-academic-text';
 import {
  detectTopicFromIndex,
  type DetectTopicFromIndexInput,
- type DetectTopicFromIndexOutput,
 } from '@/ai/flows/detect-topic-flow';
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 
@@ -256,12 +242,12 @@ const DeepPenAIApp = () => {
  variant: 'default',
  className: 'bg-accent text-accent-foreground',
  });
- } catch (err: any) {
+ } catch (err: unknown) {
  console.error('Error extracting instructions:', err);
- setError(`Falha ao extrair instruções: ${err.message}`);
+ setError(`Falha ao extrair instruções: ${err instanceof Error ? err.message : 'Erro desconhecido'}`);
  toast({
  title: 'Erro na Extração',
- description: err.message,
+ description: err instanceof Error ? err.message : 'Erro desconhecido',
  variant: 'destructive',
  });
  } finally {
@@ -308,7 +294,7 @@ const DeepPenAIApp = () => {
        variant: 'default',
        className: 'bg-accent text-accent-foreground',
      });
-   } catch (topicErr: any) {
+   } catch (topicErr: unknown) {
      console.error('Error detecting topic:', topicErr);
      toast({
        title: 'Índice Gerado (Aviso)',
@@ -327,12 +313,12 @@ const DeepPenAIApp = () => {
      });
  }
 
- } catch (err: any) {
+ } catch (err: unknown) {
  console.error('Error generating index:', err);
- setError(`Falha ao gerar índice: ${err.message}`);
+ setError(`Falha ao gerar índice: ${err instanceof Error ? err.message : 'Erro desconhecido'}`);
  toast({
  title: 'Erro ao Gerar Índice',
- description: err.message,
+ description: err instanceof Error ? err.message : 'Erro desconhecido',
  variant: 'destructive',
  });
  } finally {
@@ -360,18 +346,19 @@ const DeepPenAIApp = () => {
  };
  const result = await generateAcademicText(input);
  setGeneratedText(result.academicText);
+ await autoSaveGeneratedWork('gerado', result.academicText);
  toast({
  title: 'Sucesso',
  description: 'Texto acadêmico gerado.',
  variant: 'default',
  className: 'bg-accent text-accent-foreground',
  });
- } catch (err: any) {
+ } catch (err: unknown) {
  console.error('Error generating academic text:', err);
- setError(`Falha ao gerar texto acadêmico: ${err.message}`);
+ setError(`Falha ao gerar texto acadêmico: ${err instanceof Error ? err.message : 'Erro desconhecido'}`);
  toast({
  title: 'Erro ao Gerar Texto',
- description: err.message,
+ description: err instanceof Error ? err.message : 'Erro desconhecido',
  variant: 'destructive',
  });
  } finally {
@@ -398,18 +385,19 @@ const DeepPenAIApp = () => {
  };
  const result = await expandAcademicText(input);
  setGeneratedText(result.expandedAcademicText);
+ await autoSaveGeneratedWork('expandido', result.expandedAcademicText);
  toast({
  title: 'Sucesso',
  description: 'Texto expandido.',
  variant: 'default',
  className: 'bg-accent text-accent-foreground',
  });
- } catch (err: any) {
+ } catch (err: unknown) {
  console.error('Error expanding text:', err);
- setError(`Falha ao expandir texto: ${err.message}`);
+ setError(`Falha ao expandir texto: ${err instanceof Error ? err.message : 'Erro desconhecido'}`);
  toast({
  title: 'Erro ao Expandir',
- description: err.message,
+ description: err instanceof Error ? err.message : 'Erro desconhecido',
  variant: 'destructive',
  });
  } finally {
@@ -436,18 +424,19 @@ const DeepPenAIApp = () => {
  };
  const result = await deepenAcademicText(input);
  setGeneratedText(result.deepenedAcademicText);
+ await autoSaveGeneratedWork('aprofundado', result.deepenedAcademicText);
  toast({
  title: 'Sucesso',
  description: 'Texto aprofundado.',
  variant: 'default',
  className: 'bg-accent text-accent-foreground',
  });
- } catch (err: any) {
+ } catch (err: unknown) {
  console.error('Error deepening text:', err);
- setError(`Falha ao aprofundar texto: ${err.message}`);
+ setError(`Falha ao aprofundar texto: ${err instanceof Error ? err.message : 'Erro desconhecido'}`);
  toast({
  title: 'Erro ao Aprofundar',
- description: err.message,
+ description: err instanceof Error ? err.message : 'Erro desconhecido',
  variant: 'destructive',
  });
  } finally {
@@ -455,56 +444,40 @@ const DeepPenAIApp = () => {
  }
  };
 
- const handleSaveGeneratedWork = async () => {
-   if (!generatedText || !currentInstructions) {
-     toast({
-       title: 'Erro',
-       description: 'Não há texto ou instruções para salvar.',
-       variant: 'destructive',
-     })
-     return
-   }
- 
+ // Função auxiliar para salvar automaticamente
+ const autoSaveGeneratedWork = async (type: 'gerado' | 'expandido' | 'aprofundado', text: string) => {
+   if (!text || !currentInstructions) return;
    try {
-     const response = await fetch('/api/generated-work/save', {
+     await fetch('/api/generated-work/save', {
        method: 'POST',
-       headers: {
-         'Content-Type': 'application/json',
-       },
+       headers: { 'Content-Type': 'application/json' },
        body: JSON.stringify({
-         // userId será definido no backend
          title: 'Trabalho Gerado',
          topic: detectedTopic,
          instructions: currentInstructions,
-         generatedText: generatedText,
+         generatedText: text,
          language: targetLanguage,
          citationStyle,
          sourceType: activeTab === 'file' ? 'file' : 'manual',
          sourceContent: activeTab === 'file' ? extractedInstructions : topicTitles,
          paperId: null,
+         generationType: type,
        })
-       ,
-     })
- 
-     const result = await response.json()
-     if (result.success) {
-       toast({
-         title: 'Salvo com sucesso!',
-         description: 'Trabalho acadêmico armazenado no banco de dados.',
-         className: 'bg-green-600 text-white',
-       })
-     } else {
-       throw new Error(result.error)
-     }
-   } catch (err: any) {
+     });
      toast({
-       title: 'Erro ao salvar',
-       description: err.message,
+       title: 'Salvo automaticamente',
+       description: `Trabalho ${type} salvo no banco de dados.`,
+       className: 'bg-green-600 text-white',
+     });
+   } catch (e) {
+     toast({
+       title: 'Erro ao salvar automaticamente',
+       description: 'Ocorreu um erro ao salvar o trabalho.',
        variant: 'destructive',
-     })
+     });
    }
- }
- 
+ };
+
  const handleResetAll = () => {
  setActiveTab('file');
  setFile(null);
@@ -993,15 +966,6 @@ const DeepPenAIApp = () => {
 
   <div className="mt-6 space-y-4">
   <div className="flex flex-col sm:flex-row sm:space-x-4 space-y-4 sm:space-y-0">
-
-  <Button
-  onClick={handleSaveGeneratedWork}
-  disabled={!generatedText}
-  className="mt-4 w-full bg-green-600 hover:bg-green-700 text-white"
-  >
-  Salvar no Banco
-  </Button>
-
 
   {/* Reset Button */}
   <Button

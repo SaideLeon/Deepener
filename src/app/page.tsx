@@ -2,19 +2,17 @@
 
 import React, { useState, FormEvent } from 'react';
 import Link from 'next/link';
-import { ArrowRight, Mail, Zap, BrainCircuit, Settings, UploadCloud, FileText, Palette, CheckCircle, Lightbulb, Menu } from 'lucide-react';
+import { ArrowRight, Mail, Zap, BrainCircuit, Settings, UploadCloud, FileText, Palette } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from "@/hooks/use-toast";
-import Image from 'next/image';
 import { signIn } from "next-auth/react";
 import { Icons } from "@/components/ui/icons";
 
 const LandingPage = () => {
   const [email, setEmail] = useState('');
   const { toast } = useToast();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [loadingGoogle, setLoadingGoogle] = useState(false);
   const [loadingLead, setLoadingLead] = useState(false);
 

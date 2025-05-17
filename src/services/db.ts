@@ -25,9 +25,10 @@ export interface GeneratedWork {
   createdAt: Date
   updatedAt: Date
   status: WorkStatus
-  metadata: any
+  metadata: unknown
   userId: string
   paperId: string | null
+  generationType?: string  
 }
 
 export const db = {
@@ -93,7 +94,7 @@ export const db = {
   },
 
   // GeneratedWork related operations
-  async createGeneratedWork(data: Omit<GeneratedWork, 'id' | 'createdAt' | 'updatedAt'>) {
+  async createGeneratedWork(data: Omit<GeneratedWork, 'id' | 'createdAt' | 'updatedAt'> & { metadata: import('@prisma/client').Prisma.InputJsonValue }) {
     return prisma.generatedWork.create({
       data,
     })
@@ -113,9 +114,13 @@ export const db = {
   },
 
   async updateGeneratedWork(id: string, data: Partial<Omit<GeneratedWork, 'id' | 'createdAt' | 'updatedAt' | 'userId'>>) {
+    // Remove undefined properties to satisfy Prisma's type requirements
+    const cleanedData = Object.fromEntries(
+      Object.entries(data).filter(([_, v]) => v !== undefined)
+    );
     return prisma.generatedWork.update({
       where: { id },
-      data,
+      data: cleanedData,
     })
   },
 

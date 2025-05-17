@@ -14,7 +14,6 @@ export const metadata: Metadata = {
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
-  const papers = await db.getPapersByUserId(session?.user?.id || "");
   const generatedWorks = await db.getGeneratedWorksByUserId(session?.user?.id || "");
   const activityLogs = await db.getActivityLogsByUserId(session?.user?.id || "");
 
@@ -54,12 +53,18 @@ export default async function DashboardPage() {
           </Card>
         </div>
         <div className="space-y-4">
-          <h2 className="text-xl font-semibold">Trabalhos Gerados Recentes</h2>
+          <h2 className="text-xl font-semibold">Trabalhos Gerados Recentimente</h2>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {generatedWorks.slice(0, 3).map((work) => (
               <Card key={work.id}>
                 <CardHeader>
-                  <CardTitle className="line-clamp-1">{work.topic}</CardTitle>
+                  <CardTitle className="line-clamp-1">
+                    {work.topic
+                      ? work.topic
+                      : work.instructions
+                        ? work.instructions.slice(0, 38) + (work.instructions.length > 38 ? "..." : "")
+                        : work.title}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-muted-foreground">
@@ -70,6 +75,9 @@ export default async function DashboardPage() {
                   </p>
                   <p className="text-sm text-muted-foreground">
                     Gerado em: {new Date(work.createdAt).toLocaleDateString()}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Tipo: {work.generationType}
                   </p>
                   <div className="mt-2">
                     <Link href={`/generated/${work.id}`}>

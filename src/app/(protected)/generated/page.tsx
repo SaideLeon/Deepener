@@ -16,8 +16,13 @@ export default async function GeneratedWorksPage() {
   const session = await getServerSession(authOptions);
   const generatedWorks = await db.getGeneratedWorksByUserId(session?.user?.id || "");
 
+  if (!session?.user) {
+    // You can render a fallback, redirect, or throw an error here
+    return null;
+  }
+
   return (
-    <DashboardLayout user={session?.user!}>
+    <DashboardLayout user={session.user}>
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Trabalhos Gerados</h1>

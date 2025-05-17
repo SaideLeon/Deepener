@@ -97,6 +97,7 @@ model GeneratedWork {
   updatedAt     DateTime   @updatedAt
   status        WorkStatus @default(draft)
   metadata      Json?
+  generationType String? // 'gerado', 'expandido', 'aprofundado'
 
   user  User   @relation(fields: [userId], references: [id])
   paper Paper? @relation(fields: [paperId], references: [id])

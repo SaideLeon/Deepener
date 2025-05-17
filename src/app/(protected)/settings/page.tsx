@@ -18,7 +18,7 @@ export default async function SettingsPage() {
   };
 
   return (
-    <DashboardLayout user={session?.user!}> 
+    <DashboardLayout user={session.user}> 
     <div className="container max-w-4xl py-6 space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Configurações</h1>
@@ -67,4 +67,4 @@ export default async function SettingsPage() {
     </div>
     </DashboardLayout>
   );
-} 
+}

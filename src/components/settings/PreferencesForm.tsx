@@ -6,7 +6,6 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { useTheme } from "next-themes";
-import { Moon, Sun } from "lucide-react";
 
 interface PreferencesFormProps {
   initialPreferences: {
@@ -47,7 +46,7 @@ export function PreferencesForm({ initialPreferences }: PreferencesFormProps) {
         description: "Preferências atualizadas com sucesso!",
       });
       router.refresh();
-    } catch (error) {
+    } catch {
       toast({
         title: "Erro",
         description: "Erro ao atualizar preferências",
@@ -93,4 +92,4 @@ export function PreferencesForm({ initialPreferences }: PreferencesFormProps) {
       </div>
     </div>
   );
-} 
+}

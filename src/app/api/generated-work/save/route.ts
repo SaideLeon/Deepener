@@ -31,6 +31,7 @@ export async function POST(req: Request) {
       sourceType,
       sourceContent,
       paperId,
+      generationType,   
     } = body
 
     const result = await prisma.generatedWork.create({
@@ -46,6 +47,7 @@ export async function POST(req: Request) {
         sourceContent,
         status: 'draft',
         paperId,
+        generationType, 
       },
     })
 

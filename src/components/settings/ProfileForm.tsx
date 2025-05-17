@@ -45,7 +45,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
         description: "Perfil atualizado com sucesso!",
       });
       router.refresh();
-    } catch (error) {
+    } catch {
       toast({
         title: "Erro",
         description: "Erro ao atualizar perfil",
@@ -90,4 +90,4 @@ export function ProfileForm({ user }: ProfileFormProps) {
       </Button>
     </form>
   );
-} 
+}

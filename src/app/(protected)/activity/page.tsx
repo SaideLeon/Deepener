@@ -7,8 +7,13 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 export default async function ActivityPage() {
   const session = await getServerSession(authOptions);
 
+  if (!session?.user) {
+    // Optionally, you can redirect or show a loading/error state here
+    return null;
+  }
+
   return (
-    <DashboardLayout user={session?.user!}> 
+    <DashboardLayout user={session.user}> 
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Atividades</h1>
@@ -34,7 +39,7 @@ export default async function ActivityPage() {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              Você criou um novo trabalho acadêmico: "Análise de Dados com Python"
+              Você criou um novo trabalho acadêmico: &quot;Análise de Dados com Python&quot;
             </p>
           </CardContent>
         </Card>

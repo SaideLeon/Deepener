@@ -9,9 +9,14 @@ export default async function ProfilePage() {
   const session = await getServerSession(authOptions);
   const user = session?.user;
 
+  if (!user) {
+    // You can customize this fallback as needed
+    return <div>Usuário não autenticado.</div>;
+  }
+
   return (
     
-    <DashboardLayout user={session?.user!}>
+    <DashboardLayout user={user}>
     <div className="max-w-2xl mx-auto">
       <Card>
         <CardHeader>

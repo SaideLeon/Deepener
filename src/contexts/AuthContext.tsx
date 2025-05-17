@@ -2,12 +2,11 @@
 
 import { createContext, useContext, useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
 
 interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
-  user: any;
+  user: unknown;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -19,7 +18,6 @@ const AuthContext = createContext<AuthContextType>({
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
   const [isLoading, setIsLoading] = useState(true);
-  const router = useRouter();
 
   useEffect(() => {
     if (status !== "loading") {
@@ -42,4 +40,4 @@ export const useAuth = () => {
     throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
-}; 
+};

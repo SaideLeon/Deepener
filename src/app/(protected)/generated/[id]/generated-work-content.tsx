@@ -30,7 +30,7 @@ export function GeneratedWorkContent({ work }: GeneratedWorkContentProps) {
             className: 'bg-accent text-accent-foreground',
           })
         )
-        .catch(err =>
+        .catch(() =>
           toast({
             title: 'Erro',
             description: 'Falha ao copiar texto.',
@@ -107,4 +107,4 @@ export function GeneratedWorkContent({ work }: GeneratedWorkContentProps) {
       </div>
     </div>
   );
-} 
+}

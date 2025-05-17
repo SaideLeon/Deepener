@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { User } from "next-auth";
 import { signOut } from "next-auth/react";
-import { Zap } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,

@@ -54,7 +54,7 @@ export function PasswordForm() {
       setNewPassword("");
       setConfirmPassword("");
       router.refresh();
-    } catch (error) {
+    } catch {
       toast({
         title: "Erro",
         description: "Erro ao atualizar senha",
@@ -112,4 +112,4 @@ export function PasswordForm() {
       </Button>
     </form>
   );
-} 
+}
