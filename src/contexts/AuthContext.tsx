@@ -2,11 +2,12 @@
 
 import { createContext, useContext, useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
+import type { User } from 'next-auth';
 
 interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
-  user: unknown;
+  user: User | null;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -28,7 +29,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const value = {
     isAuthenticated: !!session,
     isLoading,
-    user: session?.user,
+    user: session?.user as User | null,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
