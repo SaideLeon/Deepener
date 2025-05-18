@@ -71,13 +71,15 @@ export default async function DashboardPage() {
             {generatedWorks.slice(0, 3).map((work) => (
               <Card key={work.id}>
                 <CardHeader>
-                  <CardTitle className="line-clamp-1">
-                    {work.topic
-                      ? work.topic
-                      : work.instructions
-                        ? work.instructions.slice(0, 38) + (work.instructions.length > 38 ? "..." : "")
-                        : work.title}
-                  </CardTitle>
+                  <Link href={`/generated/${work.id}`}>
+                                  <CardTitle className="line-clamp-1">
+                                    {work.topic
+                                      ? work.topic
+                                      : work.instructions
+                                        ? work.instructions.slice(0, 38) + (work.instructions.length > 38 ? "..." : "")
+                                        : work.title}
+                                  </CardTitle>
+                                </Link>
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-muted-foreground">
