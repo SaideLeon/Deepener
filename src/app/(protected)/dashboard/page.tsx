@@ -26,9 +26,18 @@ export default async function DashboardPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold">Dashboard</h1>
-          <Link href="/creator">
-            <Button>Novo Trabalho</Button>
-          </Link>
+            <Link href="/creator">
+              <Button disabled={false}>
+                {false ? (
+                  <svg className="animate-spin h-5 w-5 mr-2 inline" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                  </svg>
+                ) : (
+                  "Novo Trabalho"
+                )}
+              </Button>
+            </Link>
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
