@@ -32,7 +32,11 @@ export default async function GeneratedWorksPage() {
         {generatedWorks.map((work) => (
           <Card key={work.id}>
             <CardHeader>
-              <CardTitle className="line-clamp-1">{work.topic}</CardTitle>
+              <CardTitle className="line-clamp-1">{work.topic
+                      ? work.topic
+                      : work.instructions
+                        ? work.instructions.slice(0, 38) + (work.instructions.length > 38 ? "..." : "")
+                        : work.title}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">
