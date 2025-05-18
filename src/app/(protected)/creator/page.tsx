@@ -222,6 +222,31 @@ const DeepPenAIApp = () => {
  try {
  const input: ExtractInstructionsFromFileInput = {fileUri: fileDataUri};
  const result = await extractInstructionsFromFile(input);
+  if (result.extractedText) {
+    try {
+     const topicInput: DetectTopicFromIndexInput = {
+       academicIndex: result.extractedText,
+       targetLanguage: targetLanguage,
+     };
+     const topicResult = await detectTopicFromIndex(topicInput);
+     setDetectedTopic(topicResult.detectedTopic);
+     toast({
+       title: 'Sucesso!',
+       description: `Texto extraido. Tópico detectado: "${topicResult.detectedTopic}".`,
+       variant: 'default',
+       className: 'bg-accent text-accent-foreground',
+     });
+   } catch (topicErr: unknown) {
+     console.error('Error detecting topic:', topicErr);
+     toast({
+       title: 'Texto extraido (Aviso)',
+       description: 'Texto extraido com sucesso, mas falha ao detectar o tópico principal.',
+       variant: 'default',
+     });
+   } finally {
+     setIsLoadingTopicDetection(false);
+   }
+  }
  setExtractedInstructions(result.extractedText);
  setCurrentTextAreaValue(result.extractedText || 'As instruções ou estrutura para geração do texto aparecerão aqui...');
 

@@ -11,7 +11,7 @@
     "prisma:migrate": "prisma migrate dev --name",
     "prisma:migrate:deploy": "prisma migrate deploy",
     "build": "prisma generate && prisma migrate deploy && next build",
-    "start": "prisma generate && prisma migrate deploy && next build && next start",
+    "start": "prisma migrate deploy && next build && next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit"
   },
