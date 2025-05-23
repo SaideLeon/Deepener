@@ -15,6 +15,11 @@ import {z} from 'genkit';
 
 // Define the input schema
 const GenerateAcademicTextInputSchema = z.object({
+  reference: z
+    .string()
+    .describe(
+      'The reference for the academic text generation, extracted from the image or provided by the user.'
+    ),
   instructions: z
     .string()
     .describe(
@@ -57,6 +62,7 @@ const generateAcademicTextPrompt = ai.definePrompt({
 Instructions: {{{instructions}}}
 Target Language: {{{targetLanguage}}}
 Citation Style: {{{citationStyle}}}
+Bibliographic reference: {{{referencia}}}
 
 When generating the text, please follow these steps:
 1.  Structure the academic text with clear and relevant headings (e.g., # Introduction, ## Main Section 1, ### Subsection 1.1, etc.). Use Markdown heading syntax.
