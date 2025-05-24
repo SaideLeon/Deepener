@@ -221,6 +221,15 @@ const DeepPenAIApp = () => {
    }
  }, [activeTab, detectedLanguage, extractedInstructions]);
 
+ // Chama automaticamente a geração de texto após fichamento
+ useEffect(() => {
+  if (fichaCriada) {
+    handleGenerateText();
+    setFichaCriada(false); // Garante que só gera uma vez por ciclo
+  }
+// eslint-disable-next-line react-hooks/exhaustive-deps
+}, [fichaCriada]);
+
  if (isLoading) {
    return (
      <div className="flex items-center justify-center min-h-screen">
@@ -465,6 +474,7 @@ setTermoBusca(null);
  setGeneratedText(null);
  try {
  const referencias = (fichas ?? []).map((item: FichaLeitura) => JSON.stringify(item)).join("");
+ console.log(referencias);
 
  const input: GenerateAcademicTextInput = {
  reference: referencias,
@@ -495,11 +505,6 @@ setTermoBusca(null);
  };
 
 
-const handleBuscarECriarTrabalho = async () => {
-    iniciarFichamento();
-    if (fichaCriada) {
-      handleGenerateText();
-}};
  const handleExpandText = async () => {
  if (!generatedText) {
  toast({
@@ -950,7 +955,7 @@ const handleBuscarECriarTrabalho = async () => {
 
   {/* Generate Text Button */}
   <Button
-  onClick={handleBuscarECriarTrabalho}
+  onClick={iniciarFichamento}
   disabled={
   !currentInstructions ||
   currentInstructions === 'As instruções ou estrutura para geração do texto aparecerão aqui...' ||
