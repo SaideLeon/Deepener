@@ -192,7 +192,9 @@ const DeepPenAIApp = () => {
     }
 
     adicionarLog(`🎉 Processo finalizado! ${fichasGeradas.length} fichas geradas`);
+    setFichaCriada(true);
     setCarregando(false);
+    
   };
 
 
