@@ -1,5 +1,5 @@
 'use client';
-
+import {FichaLeitura} from '@/types';
 import React, {useState, useEffect, ChangeEvent} from 'react';
 import {
  BookOpen,
@@ -67,7 +67,7 @@ import {
  type DetectTopicFromIndexInput,
 } from '@/ai/flows/detect-topic-flow';
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import Image from 'next/image';
+import Image from 'next/image';  
 
 type CitationStyle = 'APA' | 'ABNT' | 'Sem Normas';
 type ActiveTab = 'file' | 'titles';
@@ -105,6 +105,96 @@ const DeepPenAIApp = () => {
  const [isLoadingDeepen, setIsLoadingDeepen] = useState<boolean>(false);
  const [error, setError] = useState<string | null>(null);
  const [currentTextAreaValue, setCurrentTextAreaValue] = useState<string>('As instruções ou estrutura para geração do texto aparecerão aqui...');
+
+ // Referencia bibliografica
+ const [termoBusca, setTermoBusca] = useState<string | null>(null); 
+ const [todasPaginas, setTodasPaginas] = useState(false);
+  const [fichas, setFichas] = useState<FichaLeitura[] | null>(null);
+  const [carregando, setCarregando] = useState(false);
+  const [log, setLog] = useState<string[]>([]);
+  const [totalResultados, setTotalResultados] = useState(0);
+  const [paginaAtual, setPaginaAtual] = useState(0);
+  const [fichaCriada, setFichaCriada] = useState(false);
+
+  const adicionarLog = (mensagem: string) => {
+    setLog((prev: string[]) => [...prev.slice(-2), mensagem]);
+  };
+
+   const iniciarFichamento = async () => {
+    setCarregando(true);
+    setFichas([]);
+    setLog([]);
+    setPaginaAtual(0);
+    setTermoBusca(detectedTopic);
+    setTodasPaginas(false);
+
+    adicionarLog(`🔍 Buscando artigos para: ${termoBusca}`);
+
+    let resultados: { titulo: string; url: string }[] = [];
+    try {
+      const response = await fetch('/api/scraper', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ termoBusca, todasPaginas })
+      });
+      if (!response.ok) throw new Error('Erro na resposta da API: ' + response.status);
+      resultados = await response.json();
+      setTotalResultados(resultados.length);
+      adicionarLog(`🔗 ${resultados.length} artigos encontrados`);
+    } catch (erro: unknown) {
+      if (erro instanceof Error) {
+        adicionarLog('❌ Erro ao buscar links: ' + erro.message);
+      } else {
+        adicionarLog('❌ Erro ao buscar links: ' + String(erro));
+      }
+      setCarregando(false);
+      return;
+    }
+
+    const fichasGeradas: FichaLeitura[] = [];
+    for (let i = 0; i < resultados.length; i++) {
+      const { url } = resultados[i];
+      setPaginaAtual(i + 1);
+      
+      try {
+        adicionarLog(`📄 Processando página ${i + 1} de ${resultados.length}: ${url}`);
+        
+        const conteudoResp = await fetch('/api/scraper', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url })
+        });
+        
+        if (!conteudoResp.ok) throw new Error('Erro ao raspar conteúdo: ' + conteudoResp.status);
+        const conteudo = await conteudoResp.json();
+        
+        // Chamada segura da API para gerar ficha
+        let ficha = null;
+        try {
+          const fichaResp = await fetch('/api/fichamento', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ conteudo })
+          });
+          if (!fichaResp.ok) throw new Error('Erro ao gerar ficha: ' + fichaResp.status);
+          ficha = await fichaResp.json();
+        } catch (apiError) {
+          adicionarLog(`❌ Erro ao gerar ficha: ${apiError instanceof Error ? apiError.message : String(apiError)}`);
+          continue; // Pula para o próximo artigo
+        }
+        fichasGeradas.push(ficha);
+        setFichas([...fichasGeradas]); // Atualiza em tempo real
+
+        adicionarLog(`✅ Ficha criada: ${ficha.titulo}`);
+      } catch (erro: unknown) {
+        adicionarLog(`❌ Erro ao processar página ${i + 1}: ${erro instanceof Error ? erro.message : String(erro)}`);
+      }
+    }
+
+    adicionarLog(`🎉 Processo finalizado! ${fichasGeradas.length} fichas geradas`);
+    setCarregando(false);
+  };
+
 
  // All useEffect hooks together
  useEffect(() => {
@@ -217,7 +307,9 @@ const DeepPenAIApp = () => {
  setExtractedInstructions(null);
  setGeneratedText(null);
  setDetectedTopic(null);
-
+ setFichas(null);
+ setFichaCriada(false);
+ setTermoBusca(null);
 
  try {
  const input: ExtractInstructionsFromFileInput = {fileUri: fileDataUri};
@@ -297,6 +389,9 @@ const DeepPenAIApp = () => {
  setGeneratedIndex(null);
  setDetectedTopic(null);
  setGeneratedText(null);
+ setFichaCriada(false);
+ setFichas(null);
+setTermoBusca(null);
 
  try {
  const indexInput: GenerateIndexFromTitlesInput = {
@@ -367,7 +462,10 @@ const DeepPenAIApp = () => {
  setError(null);
  setGeneratedText(null);
  try {
+ const referencias = (fichas ?? []).map((item: FichaLeitura) => JSON.stringify(item)).join("");
+
  const input: GenerateAcademicTextInput = {
+ reference: referencias,
  instructions: currentInstructions,
  targetLanguage: targetLanguage,
  citationStyle: citationStyle,
@@ -394,6 +492,12 @@ const DeepPenAIApp = () => {
  }
  };
 
+
+const handleBuscarECriarTrabalho = async () => {
+    iniciarFichamento();
+    if (fichaCriada) {
+      handleGenerateText();
+}};
  const handleExpandText = async () => {
  if (!generatedText) {
  toast({
@@ -844,7 +948,7 @@ const DeepPenAIApp = () => {
 
   {/* Generate Text Button */}
   <Button
-  onClick={handleGenerateText}
+  onClick={handleBuscarECriarTrabalho}
   disabled={
   !currentInstructions ||
   currentInstructions === 'As instruções ou estrutura para geração do texto aparecerão aqui...' ||
@@ -863,6 +967,41 @@ const DeepPenAIApp = () => {
   )}
   Gerar Texto ({getLanguageName(targetLanguage)} - {citationStyle})
   </Button>
+
+  {/* Progress Section */}
+        {carregando && (
+          <div className="mt-8 space-y-4">
+            <div className="flex items-center justify-between text-white/80 text-sm mb-2">
+              <span>Progresso</span>
+              <span>{paginaAtual} de {totalResultados}</span>
+            </div>
+            <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full transition-all duration-500 progress-bar-animated"
+                style={{
+                  width: totalResultados ? `${(paginaAtual / totalResultados) * 100}%` : '0%'
+                }}
+              />
+            </div>
+            <div className="bg-white/5 backdrop-blur-sm rounded-lg p-4">
+              <div className="text-white/90 font-mono text-sm">
+                {log.map((linha, i) => (
+                  <div 
+                    key={i} 
+                    className="transition-all duration-300 animate-fade-in"
+                    style={{
+                      opacity: 1 - (i * 0.3),
+                      transform: `scale(${1 - i * 0.05})`
+                    }}
+                  >
+                    {linha}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
 
   {/* Generated Text Display */}
   <div className="sm:ml-1 sm:mr-1 bg-black/60 dark:bg-gray-800 rounded-xl shadow-md overflow-hidden transition-colors duration-300">
