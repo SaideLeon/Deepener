@@ -977,20 +977,20 @@ setTermoBusca(null);
   {/* Progress Section */}
         {carregando && (
           <div className="mt-8 space-y-4">
-            <div className="flex items-center justify-between text-white/80 text-sm mb-2">
-              <span>Progresso</span>
+            <div className="flex items-center justify-between text-gray-700 dark:text-white/80 text-sm mb-2">
+              <span>Pesquisando artigos que contribuam para o trabalho</span>
               <span>{paginaAtual} de {totalResultados}</span>
             </div>
-            <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+            <div className="w-full h-2 bg-gray-200 dark:bg-white/10 rounded-full overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full transition-all duration-500 progress-bar-animated"
+                className="h-full bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-500 dark:to-indigo-500 rounded-full transition-all duration-500 progress-bar-animated"
                 style={{
                   width: totalResultados ? `${(paginaAtual / totalResultados) * 100}%` : '0%'
                 }}
               />
             </div>
-            <div className="bg-white/5 backdrop-blur-sm rounded-lg p-4">
-              <div className="text-white/90 font-mono text-sm">
+            <div className="bg-gray-100/80 dark:bg-white/5 backdrop-blur-sm rounded-lg p-4">
+              <div className="text-gray-800 dark:text-white/90 font-mono text-sm">
                 {log.map((linha, i) => (
                   <div 
                     key={i} 
