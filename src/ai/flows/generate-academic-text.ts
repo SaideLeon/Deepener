@@ -74,7 +74,8 @@ When generating the text, please follow these steps:
     - If "APA" is chosen, use APA style for all citations and references. Example of in-text citation: (Author, Year, p. xx).
     - If "ABNT" is chosen, use ABNT style for all citations and references. Example of in-text citation: (AUTOR, ANO, p. xx).
     - If "Sem Normas" is chosen, generate the text naturally without enforcing specific citation rules, but maintain an academic tone.
-6.  The final output must be a single Markdown string. Ensure proper Markdown formatting for headings, paragraphs, lists, citations, etc.
+6.  If the bibliographic reference contains images (with 'src' and 'legenda'), insert the images in the most relevant section of the text using Markdown image syntax: ![Legenda](src). The image should be placed where it best illustrates or complements the content being discussed. Always include the provided legend as the image caption. If there are multiple images, distribute them ao longo do texto conforme o contexto de cada seção.
+7.  The final output must be a single Markdown string. Ensure proper Markdown formatting for headings, paragraphs, lists, images, citations, etc.
 `,
 });
 
