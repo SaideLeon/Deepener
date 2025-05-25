@@ -71,7 +71,15 @@ When generating the text, please follow these steps:
 4.  The text must be written in the {{{targetLanguage}}}.
 5.  Adhere strictly to the specified {{{citationStyle}}}.
 
-    - If "APA" is chosen, use APA style for all citations and references. Example of in-text citation: (Author, Year, p. xx).
+    - If "APA" is chosen, follow the American Psychological Association (APA) 7th edition guidelines for all citations and references. Use the author-date system. Each citation must include the author's surname, year of publication, and page numbers. Prioritize the use of short direct citations (less than 40 words) incorporated into the text, following the format: De acordo com Pinto (2008) a nova reforma só surgirá em 1982, agora no contexto “da emergente sociedade da informação” (p. 29). There are three types of citations:
+      - Indirect citation: Paraphrase the author's idea in your own words.
+      - Direct citation (short, less than 40 words): Incorporate the quote into the text with double quotation marks. Example: Era um estágio que conferia “habilitação preferencial para o provimento dos lugares de arquivista” (Silva & Ribeiro, 2002, pp. 143-144).
+      - Direct citation (long, 40 words or more): Present the quote in a separate block, without quotation marks, indented 1.27 cm from the left margin, and double-spaced. Example:
+
+        Na década de 70 abre-se um novo período na vida dos profissionais da informação com a criação da primeira associação profissional do sector. Nessa altura:
+        Debatia-se então, o orgulho de ser um profissional BAD sem complexos perante as outras profissões mais afirmativas e com maior reconhecimento social, com estatutos remuneratórios mais compensadores e carreiras mais bem definidas e estruturadas. Foram tempos de mudança, de luta, em que se ganhou consciência de classe. (Queirós, 2001, pp. 1-2)
+      - Citation of a citation: Transmit the idea of an author without access to the original text.
+
     - If "ABNT" is chosen, use ABNT style for all citations and references. Example of in-text citation: (AUTOR, ANO, p. xx).
     - If "Sem Normas" is chosen, generate the text naturally without enforcing specific citation rules, but maintain an academic tone.
 6.  If the bibliographic reference contains images (with 'src' and 'legenda'), insert the images in the most relevant section of the text using Markdown image syntax: ![Legenda](src). The image should be placed where it best illustrates or complements the content being discussed. Always include the provided legend as the image caption. If there are multiple images, distribute them ao longo do texto conforme o contexto de cada seção.
