@@ -28,7 +28,7 @@ export interface GeneratedWork {
   metadata: unknown
   userId: string
   paperId: string | null
-  generationType?: string  
+  generationType?: string | null  
 }
 
 export const db = {
