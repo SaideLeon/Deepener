@@ -474,7 +474,6 @@ setTermoBusca(null);
  setGeneratedText(null);
  try {
  const referencias = (fichas ?? []).map((item: FichaLeitura) => JSON.stringify(item)).join("");
- console.log(referencias);
 
  const input: GenerateAcademicTextInput = {
  reference: referencias,
