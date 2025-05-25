@@ -62,7 +62,7 @@ const generateAcademicTextPrompt = ai.definePrompt({
 Instructions: {{{instructions}}}
 Target Language: {{{targetLanguage}}}
 Citation Style: {{{citationStyle}}}
-Bibliographic reference: {{{referencia}}}
+Bibliographic reference: {{{reference}}}
 
 When generating the text, please follow these steps:
 1.  Structure the academic text with clear and relevant headings (e.g., # Introduction, ## Main Section 1, ### Subsection 1.1, etc.). Use Markdown heading syntax.
@@ -70,6 +70,7 @@ When generating the text, please follow these steps:
 3.  The entire text must be coherent, well-organized, and directly address the given instructions.
 4.  The text must be written in the {{{targetLanguage}}}.
 5.  Adhere strictly to the specified {{{citationStyle}}}.
+
     - If "APA" is chosen, use APA style for all citations and references. Example of in-text citation: (Author, Year, p. xx).
     - If "ABNT" is chosen, use ABNT style for all citations and references. Example of in-text citation: (AUTOR, ANO, p. xx).
     - If "Sem Normas" is chosen, generate the text naturally without enforcing specific citation rules, but maintain an academic tone.
