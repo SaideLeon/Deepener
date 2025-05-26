@@ -12,7 +12,7 @@ import {
   TableCell,
   WidthType,
   BorderStyle,
-  // ImageRun (para futuro suporte a fórmulas como imagens)
+  ImageRun, // habilita suporte a imagens
 } from 'docx';
 import MarkdownIt from 'markdown-it';
 import { Button } from "@/components/ui/button";
@@ -151,12 +151,46 @@ export default function MarkdownToDocx({ markdownContent, fileName = "documento_
       };
 
       // Main block-level parsing
-      docHTML.body.childNodes.forEach(node => {
-        if (node.nodeType !== Node.ELEMENT_NODE) return;
+      const fetchImageAsBuffer = async (url: string): Promise<ArrayBuffer | null> => {
+        try {
+          const response = await fetch(url);
+          if (!response.ok) return null;
+          return await response.arrayBuffer();
+        } catch {
+          return null;
+        }
+      };
+
+      const parseImage = async (imgEl: HTMLImageElement) => {
+        const src = imgEl.getAttribute('src');
+        const alt = imgEl.getAttribute('alt') || '';
+        if (!src) return null;
+        const buffer = await fetchImageAsBuffer(src);
+        if (!buffer) return null;
+        return new Paragraph({
+          children: [
+            new ImageRun({
+              data: buffer,
+              transformation: { width: 400, height: 250 },
+              altText: { name: alt || "image", description: alt || "image", title: alt || "image" },
+            }),
+            ...(alt ? [new TextRun({ text: alt, break: 1, italics: true, size: 20 })] : [])
+          ],
+          alignment: AlignmentType.CENTER,
+          spacing: { after: 120 }
+        });
+      };
+
+      // Atualiza para processar imagens e outros elementos
+      for (const node of Array.from(docHTML.body.childNodes)) {
+        if (node.nodeType !== Node.ELEMENT_NODE) continue;
         const el = node as HTMLElement;
         const tagName = el.tagName.toLowerCase();
 
-        if (tagName.match(/^h[1-6]$/)) {
+        if (tagName === 'img') {
+          const imgParagraph = await parseImage(el as HTMLImageElement);
+          if (imgParagraph) docxElements.push(imgParagraph);
+        } else if (tagName.match(/^h[1-6]$/)) {
           const level = parseInt(tagName.substring(1), 10);
           let headingLevel: "Heading1" | "Heading2" | "Heading3" | "Heading4" | "Heading5" | "Heading6" | "Title";
           switch (level) {
@@ -178,19 +212,25 @@ export default function MarkdownToDocx({ markdownContent, fileName = "documento_
             }));
           }
         } else if (tagName === 'p') {
-          const paragraphOptions = parseInlineElements(el);
-          if (paragraphOptions.some(opt => (opt.text && opt.text.trim() !== '') || opt.break)) {
-            docxElements.push(new Paragraph({
-              children: paragraphOptions.map(opt => new TextRun(opt)),
-              alignment: AlignmentType.JUSTIFIED,
-              spacing: { line: LINE_SPACING_1_5, after: 120 }
-            }));
-          } else if (el.innerHTML.trim() === '&nbsp;' || el.innerHTML.trim() === '') {
-            docxElements.push(new Paragraph({
-              children: [new TextRun({ text: '', font: DEFAULT_FONT, size: DEFAULT_FONT_SIZE })],
-              alignment: AlignmentType.JUSTIFIED,
-              spacing: { line: LINE_SPACING_1_5, after: 120 }
-            }));
+          // Se o parágrafo contém apenas uma imagem
+          if (el.childNodes.length === 1 && el.childNodes[0].nodeType === Node.ELEMENT_NODE && (el.childNodes[0] as HTMLElement).tagName.toLowerCase() === 'img') {
+            const imgParagraph = await parseImage(el.childNodes[0] as HTMLImageElement);
+            if (imgParagraph) docxElements.push(imgParagraph);
+          } else {
+            const paragraphOptions = parseInlineElements(el);
+            if (paragraphOptions.some(opt => (opt.text && opt.text.trim() !== '') || opt.break)) {
+              docxElements.push(new Paragraph({
+                children: paragraphOptions.map(opt => new TextRun(opt)),
+                alignment: AlignmentType.JUSTIFIED,
+                spacing: { line: LINE_SPACING_1_5, after: 120 }
+              }));
+            } else if (el.innerHTML.trim() === '&nbsp;' || el.innerHTML.trim() === '') {
+              docxElements.push(new Paragraph({
+                children: [new TextRun({ text: '', font: DEFAULT_FONT, size: DEFAULT_FONT_SIZE })],
+                alignment: AlignmentType.JUSTIFIED,
+                spacing: { line: LINE_SPACING_1_5, after: 120 }
+              }));
+            }
           }
         } else if (tagName === 'ul' || tagName === 'ol') {
           Array.from(el.childNodes).forEach(liNode => {
@@ -218,7 +258,7 @@ export default function MarkdownToDocx({ markdownContent, fileName = "documento_
         } else if (tagName === 'table') {
           docxElements.push(parseTable(el as HTMLTableElement));
         }
-      });
+      }
 
       const doc = new Document({
         sections: [{ children: docxElements }],
