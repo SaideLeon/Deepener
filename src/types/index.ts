@@ -16,6 +16,10 @@ export interface FichaLeitura {
   resumo: string;
  citacao?: string;
 }
+export interface TrabalhoAcademico {  
+  conteudo?: string;
+  titulo?: string;
+}
 
 export interface FormatarDataOptions {
     day: '2-digit';

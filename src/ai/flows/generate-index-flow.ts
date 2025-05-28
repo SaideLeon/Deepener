@@ -30,7 +30,7 @@ export type GenerateIndexFromTitlesInput = z.infer<
 
 // Define the output schema
 const GenerateIndexFromTitlesOutputSchema = z.object({
-  generatedIndex: z.string().describe('The generated academic index/outline, formatted in Markdown, with appropriate heading levels.'),
+  generatedIndex: z.array(z.string()).describe('Lista de seções do índice acadêmico, cada item é um título de seção, na ordem correta.'),
 });
 export type GenerateIndexFromTitlesOutput = z.infer<
   typeof GenerateIndexFromTitlesOutputSchema
@@ -48,27 +48,7 @@ const generateIndexFromTitlesPrompt = ai.definePrompt({
   name: 'generateIndexFromTitlesPrompt',
   input: {schema: GenerateIndexFromTitlesInputSchema},
   output: {schema: GenerateIndexFromTitlesOutputSchema},
-  prompt: `You are an expert academic advisor. Your task is to generate a comprehensive and well-structured academic index or table of contents based on the provided topic or preliminary titles.
-The output must be in Markdown format, using appropriate heading levels (e.g., #, ##, ###) to create a clear hierarchy.
-The index should be suitable for guiding the writing of a detailed academic paper.
-The entire index must be written in the {{{targetLanguage}}}.
-
-Topic/Preliminary Titles:
-{{{titles}}}
-
-Return the generated index in the 'generatedIndex' field as a single Markdown string.
-Ensure the Markdown is well-formed and represents a logical structure for an academic paper.
-For example:
-# Introduction
-## Background
-## Problem Statement
-## Objectives
-# Literature Review
-## Key Theories
-## Previous Studies
-# Methodology
-...and so on.
-`,
+  prompt: `Você é um orientador acadêmico especialista. Sua tarefa é gerar uma lista de seções para um índice acadêmico (ou sumário) bem estruturado, baseado no tópico ou títulos preliminares fornecidos.\n\nRegras:\n- O resultado deve ser uma lista (array) de strings, cada uma representando o título de uma seção, na ordem correta.\n- O primeiro item da lista deve ser sempre 'Introdução' (ou equivalente na língua alvo).\n- O último item da lista deve ser sempre 'Referência Bibliográfica' (ou equivalente na língua alvo).\n- Os demais itens devem ser seções relevantes para um trabalho acadêmico, em ordem lógica.\n- Todos os títulos devem estar na língua alvo especificada em 'targetLanguage'.\n\nTópico/Títulos Preliminares:\n{{{titles}}}\n\nRetorne apenas a lista de seções no campo 'generatedIndex'.\nExemplo de saída (para português):\n[\n  "Introdução",\n  "Revisão da Literatura",\n  "Metodologia",\n  "Resultados e Discussão",\n  "Conclusão",\n  "Referência Bibliográfica"\n]\n`,
 });
 
 // Define the flow
