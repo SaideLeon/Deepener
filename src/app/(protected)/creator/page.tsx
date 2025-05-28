@@ -2,13 +2,10 @@
 import {FichaLeitura, TrabalhoAcademico} from '@/types';
 import React, {useState, useEffect, ChangeEvent} from 'react';
 import {
- BookOpen,
  Upload,
  Edit3,
  FileText,
  Loader2,
- Zap,
- ListTree,
  AlertCircle,
  Languages,
  Copy,
@@ -42,18 +39,7 @@ import remarkGfm from 'remark-gfm';
 import MarkdownToDocx from '@/components/markdown-to-docx';
 import { getSession } from "next-auth/react";  
 import { Session } from "next-auth";
-import {
- extractInstructionsFromFile,
- type ExtractInstructionsFromFileInput,
-} from '@/ai/flows/extract-instructions-from-file';
-import {
- generateIndexFromTitles,
- type GenerateIndexFromTitlesInput,
-} from '@/ai/flows/generate-index-flow';
-import {
- generateAcademicText,
- type GenerateAcademicTextInput,
-} from '@/ai/flows/generate-academic-text';
+
 import {
  expandAcademicText,
  type ExpandAcademicTextInput,
@@ -62,13 +48,9 @@ import {
  deepenAcademicText,
  type DeepenAcademicTextInput,
 } from '@/ai/flows/deepen-academic-text';
-import {
- detectTopicFromIndex,
- type DetectTopicFromIndexInput,
-} from '@/ai/flows/detect-topic-flow';
+ 
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import Image from 'next/image';  
-import { add } from 'date-fns';
+import Image from 'next/image';   
 
 type CitationStyle = 'APA' | 'ABNT' | 'Sem Normas';
 type ActiveTab = 'file' | 'titles';
@@ -97,7 +79,7 @@ const DeepPenAIApp = () => {
  const [targetLanguage, setTargetLanguage] = useState<LanguageCode>('pt-PT');
  const [citationStyle, setCitationStyle] = useState<CitationStyle>('Sem Normas');
  const [generatedText, setGeneratedText] = useState<string | null>(null); 
- const [isLoadingIndex, setIsLoadingIndex] = useState<boolean>(false); (false);
+ const [isLoadingIndex, setIsLoadingIndex] = useState<boolean>(false);
  const [isLoadingGenerate, setIsLoadingGenerate] = useState<boolean>(false);
  const [isLoadingExpand, setIsLoadingExpand] = useState<boolean>(false);
  const [isLoadingDeepen, setIsLoadingDeepen] = useState<boolean>(false);
@@ -451,9 +433,9 @@ const DeepPenAIApp = () => {
   useEffect(() => {
     if (fileDataUri) {
       extractInstructions();
-       setFileDataUri(null); // Limpa o URI após a extração
+      setFileDataUri(null); // Limpa o URI após a extração
     }
-  }, [fileDataUri]); 
+  }, [fileDataUri, extractInstructions]); 
 
   // Chama automaticamente a detecção de tópico após o envio do arquivo
   useEffect(() => {
@@ -477,7 +459,7 @@ const DeepPenAIApp = () => {
  // Chama automaticamente a geração de texto após fichamento
  useEffect(() => {
   if (fichaCriada) {
-    iniciarDesenvolvimento;
+    iniciarDesenvolvimento(); // fixed: call the function
     setFichaCriada(false); // Garante que só gera uma vez por ciclo
   }
 // eslint-disable-next-line react-hooks/exhaustive-deps
