@@ -267,6 +267,7 @@ const DeepPenAIApp = () => {
       variant: 'default',
       className: 'bg-accent text-accent-foreground',
     });
+    let texto = null;
     try {
       adicionarLog(`📄 Gerando texto para o título ${i + 1} de ${resultados.length}: ${titulo}`);
       const response = await fetch('/api/escritor', {
@@ -280,23 +281,25 @@ const DeepPenAIApp = () => {
         })
       });
       if (!response.ok) throw new Error('Erro ao gerar texto: ' + response.status);
-      const trabalho = await response.json();
+      let dados = await response.json();
+      texto = dados.generatedText || dados.academicText; // Corrigido: usar generatedText ou academicText
       // Corrigido: garantir que academicText existe
-      if (trabalho && trabalho.academicText) {
-        trabalhosGerados.push(trabalho);
-        adicionarLog(`✅ Trabalho criado: ${trabalho.title || titulo}`);
-      } else if (typeof trabalho === 'string') {
-        trabalhosGerados.push({ academicText: trabalho });
-        adicionarLog(`✅ Trabalho criado: ${titulo}`);
-      } else {
-        adicionarLog(`❌ Resposta inesperada da API para o título ${i + 1}`);
-      }
-      setTrabalhos([...trabalhosGerados]); // Atualiza em tempo real
+       
+       
     } catch (erro: unknown) {
       adicionarLog(`❌ Erro ao gerar trabalho para o título ${i + 1}: ${erro instanceof Error ? erro.message : String(erro)}`);
+      continue; // Pula para o próximo título
     }
+    if (!texto) {
+      adicionarLog(`❌ Texto vazio gerado para o título ${titulo}. Pulando...`);
+      continue; // Pula para o próximo título
+    }
+    trabalhosGerados.push(texto);
+    setTrabalhos([...trabalhosGerados]); // Atualiza em tempo real
+    seLogEscritor((prev: string[]) => [...prev, `✅ Trabalho criado: ${titulo}`]);
+
   }
-  adicionarLog(`🎉 Processo finalizado! ${trabalhosGerados.length} trabalhos gerados`);
+  adicionarLog(`🎉 Desenvolvimento finalizado! ${trabalhosGerados.length} trabalhos criados.`);
   setTrabalhoCriado(true);
   setEscrevendo(false);
 };
