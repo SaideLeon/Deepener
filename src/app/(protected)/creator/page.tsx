@@ -296,7 +296,7 @@ const DeepPenAIApp = () => {
     }
     trabalhosGerados.push(texto);
     setTrabalhos([...trabalhosGerados]); // Atualiza em tempo real
-    seLogEscritor((prev: string[]) => [...prev, `✅ Trabalho criado: ${titulo}`]);
+    seLogEscritor((prev: string[]) => [...prev.slice(-2), `✅"${titulo}" foi desenvolvido com sucesso! `]);
 
   }
   adicionarLog(`🎉 Desenvolvimento finalizado! ${trabalhosGerados.length} trabalhos criados.`);
@@ -860,6 +860,7 @@ const DeepPenAIApp = () => {
   <Label htmlFor="citation-style" className="block mb-2 font-semibold">
   Formato de Citação
   </Label>
+  <div className="flex items-center p-3.5 bg-muted/30 rounded-md border border-input shadow-sm backdrop-blur-sm">
   <Select
   value={citationStyle}
   onValueChange={value => setCitationStyle(value as CitationStyle)}
@@ -891,6 +892,10 @@ const DeepPenAIApp = () => {
   </SelectItem>
   </SelectContent>
   </Select>
+  </div>
+  <p className="mt-1 text-xs text-muted-foreground">
+   Use seletor para alterar a norma de citação.
+  </p>
   </div>
   </div>
 
@@ -1044,7 +1049,7 @@ const DeepPenAIApp = () => {
                 
                 {trabalhos?.map((trabalho, index) => (
                   <div key={index}> 
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{trabalho. academicText}</ReactMarkdown>
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{trabalho.academicText}</ReactMarkdown>
                   </div>
                 ))} 
             </div>
