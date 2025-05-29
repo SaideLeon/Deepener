@@ -17,6 +17,7 @@ export async function POST(req: NextRequest) {
     // Call the AI flow to generate the index
     const result = await generateIndexFromTitles({ titles, targetLanguage });
 
+    // Retorna o objeto inteiro, não só o array
     return NextResponse.json(result);
   } catch (error) {
     console.error("Error generating index:", error);

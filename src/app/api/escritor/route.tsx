@@ -9,9 +9,21 @@ export async function POST(req: NextRequest) {
     const { reference, instructions, targetLanguage, citationStyle } = body;
 
     // Validate input
-    if (!reference || !instructions || !targetLanguage) {
+    const missingFields = [];
+    if (!reference) missingFields.push('reference');
+    if (!instructions) missingFields.push('instructions');
+    if (!targetLanguage) missingFields.push('targetLanguage');
+    if (missingFields.length > 0) {
+      // Envia mensagem toast amigável para o frontend
       return NextResponse.json(
-        { error: "Reference, instructions, and target language are required." },
+        {
+          error: `Missing required field(s): ${missingFields.join(', ')}`,
+          toast: {
+            title: 'Campo obrigatório ausente',
+            description: `Preencha o(s) campo(s): ${missingFields.join(', ')}`,
+            variant: 'destructive',
+          }
+        },
         { status: 400 }
       );
     }

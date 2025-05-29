@@ -17,8 +17,8 @@ export interface FichaLeitura {
  citacao?: string;
 }
 export interface TrabalhoAcademico {  
-  conteudo?: string;
-  titulo?: string;
+   academicText?: string;
+  generatedIndex?: string;
 }
 
 export interface FormatarDataOptions {

@@ -6,7 +6,6 @@ import {
  Edit3,
  FileText,
  Loader2,
- AlertCircle,
  Languages,
  Copy,
  Maximize2,
@@ -22,8 +21,7 @@ import {
 } from '@/components/ui/card';
 import {Input} from '@/components/ui/input';
 import {Label} from '@/components/ui/label';
-import {Textarea} from '@/components/ui/textarea';
-import {Alert, AlertDescription, AlertTitle} from '@/components/ui/alert';
+import {Textarea} from '@/components/ui/textarea'; 
 import {Tabs, TabsContent, TabsList, TabsTrigger} from '@/components/ui/tabs';
 import {
  Select,
@@ -78,17 +76,13 @@ const DeepPenAIApp = () => {
  const [detectedLanguage, setDetectedLanguage] = useState<LanguageCode>('pt-PT');
  const [targetLanguage, setTargetLanguage] = useState<LanguageCode>('pt-PT');
  const [citationStyle, setCitationStyle] = useState<CitationStyle>('Sem Normas');
- const [generatedText, setGeneratedText] = useState<string | null>(null); 
- const [isLoadingIndex, setIsLoadingIndex] = useState<boolean>(false);
- const [isLoadingGenerate, setIsLoadingGenerate] = useState<boolean>(false);
+ const [generatedText, setGeneratedText] = useState<string | null>(null);  
  const [isLoadingExpand, setIsLoadingExpand] = useState<boolean>(false);
- const [isLoadingDeepen, setIsLoadingDeepen] = useState<boolean>(false);
- const [error, setError] = useState<string | null>(null);
- const [currentTextAreaValue, setCurrentTextAreaValue] = useState<string>('As instruções ou estrutura para geração do texto aparecerão aqui...');
+ const [isLoadingDeepen, setIsLoadingDeepen] = useState<boolean>(false); 
+ 
 
  // Detectar tópico usando 'api/detectTopic'
-  const [detectedTopic, setDetectedTopic] = useState<string | null>(null);
-  const [isLoadingTopicDetection, setIsLoadingTopicDetection] = useState(false);
+  const [detectedTopic, setDetectedTopic] = useState<string | null>(null); ;
   const [temaExtraido, setTemaExtraido] = useState(false);
   const [autoStartFichamento, setAutoStartFichamento] = useState(false);
 
@@ -232,70 +226,80 @@ const DeepPenAIApp = () => {
   // Função para iniciar o desenvolvimento do trabalho acadêmico usando 'api/indice' para gerar índice e 'api/escritor' para gerar texto
 
   const iniciarDesenvolvimento = async () => {
+  setEscrevendo(true);
+  setTrabalhos([]);
+  seLogEscritor([]);
+  setTituloAtual(0);
+  setTitulosTotais(fichas?.length || 0);
+  setTrabalhoCriado(false);
 
-    setEscrevendo(true);
-    setTrabalhos([]);
-    seLogEscritor([]);
-    setTituloAtual(0);
-    setTitulosTotais(fichas?.length || 0);
-    setTrabalhoCriado(false);
+  adicionarLog(`📝 Iniciando desenvolvimento de trabalho acadêmico sobre ${detectedTopic}!`);
+  let resultados: string[] = [];
+  try {
+    const response = await fetch('/api/indice', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ titles: topicTitles, targetLanguage })
+    });
+    if (!response.ok) throw new Error('Erro na resposta da API: ' + response.status);
+    const data = await response.json();
+    resultados = data.generatedIndex;
+    console.log('Resultados do índice:', resultados);
+    setTitulosTotais(resultados.length);
+    adicionarLog(`📑 Índice gerado com ${resultados.length} titulos.`);
+  } catch (erro: unknown) {
+    if (erro instanceof Error) {
+      adicionarLog('❌ Erro ao gerar índice: ' + erro.message);
+    } else {
+      adicionarLog('❌ Erro ao gerar índice: ' + String(erro));
+    }
+    setEscrevendo(false);
+    return;
+  }
 
-    adicionarLog(`📝 Iniciando desenvolvimento de trabalho acadêmico sobre ${detectedTopic}!`);
-    let resultados: {titulo: string}[] = [];
+  const trabalhosGerados: TrabalhoAcademico[] = [];
+  for (let i = 0; i < resultados.length; i++) {
+    const titulo = resultados[i];
+    setTituloAtual(i + 1);
+    toast({
+      title: `Desenvolvendo: ${titulo}`,
+      description: `Gerando texto para o título ${i + 1} de ${resultados.length}`,
+      variant: 'default',
+      className: 'bg-accent text-accent-foreground',
+    });
     try {
-      const response = await fetch('/api/indice', {
+      adicionarLog(`📄 Gerando texto para o título ${i + 1} de ${resultados.length}: ${titulo}`);
+      const response = await fetch('/api/escritor', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ titles: topicTitles, targetLanguage })
+        body: JSON.stringify({
+          reference: fichas?.map(ficha => JSON.stringify(ficha)).join(''),
+          instructions: titulo,
+          targetLanguage,
+          citationStyle
+        })
       });
-      if (!response.ok) throw new Error('Erro na resposta da API: ' + response.status);
-      resultados = await response.json();
-      setTitulosTotais(resultados.length);
-      adicionarLog(`📑 Índice gerado com ${resultados.length} titulos.`);
-      } catch (erro: unknown) {
-      if (erro instanceof Error) {
-        adicionarLog('❌ Erro ao gerar índice: ' + erro.message);
-      } else {
-        adicionarLog('❌ Erro ao gerar índice: ' + String(erro));
-      }
-      setEscrevendo(false);
-      return;
-    }
-
-    const trabalhosGerados: TrabalhoAcademico[] = [];
-    for (let i = 0; i < resultados.length; i++) {
-      const titulo = resultados[i].titulo;
-      setTituloAtual(i + 1);
-      
-      try {
-        adicionarLog(`📄 Gerando texto para o título ${i + 1} de ${resultados.length}: ${titulo}`);
-        
-        const response = await fetch('/api/escritor', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            reference: fichas?.map(ficha => JSON.stringify(ficha)).join(''),
-            instructions: titulo,
-            targetLanguage,
-            citationStyle
-          })
-        });
-        
-        if (!response.ok) throw new Error('Erro ao gerar texto: ' + response.status);
-        const trabalho = await response.json();
-        
+      if (!response.ok) throw new Error('Erro ao gerar texto: ' + response.status);
+      const trabalho = await response.json();
+      // Corrigido: garantir que academicText existe
+      if (trabalho && trabalho.academicText) {
         trabalhosGerados.push(trabalho);
-        setTrabalhos([...trabalhosGerados]); // Atualiza em tempo real
-
-        adicionarLog(`✅ Trabalho criado: ${trabalho.title}`);
-      } catch (erro: unknown) {
-        adicionarLog(`❌ Erro ao gerar trabalho para o título ${i + 1}: ${erro instanceof Error ? erro.message : String(erro)}`);
+        adicionarLog(`✅ Trabalho criado: ${trabalho.title || titulo}`);
+      } else if (typeof trabalho === 'string') {
+        trabalhosGerados.push({ academicText: trabalho });
+        adicionarLog(`✅ Trabalho criado: ${titulo}`);
+      } else {
+        adicionarLog(`❌ Resposta inesperada da API para o título ${i + 1}`);
       }
+      setTrabalhos([...trabalhosGerados]); // Atualiza em tempo real
+    } catch (erro: unknown) {
+      adicionarLog(`❌ Erro ao gerar trabalho para o título ${i + 1}: ${erro instanceof Error ? erro.message : String(erro)}`);
     }
-    adicionarLog(`🎉 Processo finalizado! ${trabalhosGerados.length} trabalhos gerados`);
-    setTrabalhoCriado(true);
-    setEscrevendo(false);
-  };
+  }
+  adicionarLog(`🎉 Processo finalizado! ${trabalhosGerados.length} trabalhos gerados`);
+  setTrabalhoCriado(true);
+  setEscrevendo(false);
+};
 
   // Função para extrair instruções do arquivo enviado usando 'api/extractInfoFile'
   const extractInstructions = async () => { 
@@ -307,8 +311,7 @@ const DeepPenAIApp = () => {
       });
       return;
     }
-    setIsLoadingExtract(true);
-    setError(null);
+    setIsLoadingExtract(true); 
     setExtractedInstructions(null);
 
     adicionarLog('🔍 Extraindo instruções do arquivo enviado...');
@@ -349,7 +352,6 @@ const DeepPenAIApp = () => {
       }
     } catch (err: unknown) {
       console.error('Error extracting instructions:', err);
-      setError(`Falha ao extrair instruções: ${err instanceof Error ? err.message : 'Erro desconhecido'}`);
       toast({
         title: 'Erro na Extração',
         description: err instanceof Error ? err.message : 'Erro desconhecido',
@@ -363,16 +365,7 @@ const DeepPenAIApp = () => {
   
   // Função para detectar tópico usando 'api/detectTopic'
   const detectTopicFunction = async () => {
-    if (!extractedInstructions || !topicTitles) {
-      toast({
-        title: 'Atenção',
-        description: 'Por favor, extrair primeiro as instruções de arquivo.',
-        variant: 'default',
-      });
-      return;
-    }
-    setIsLoadingTopicDetection(true);
-    setError(null);
+      
     setDetectedTopic(null);
 
     adicionarLog('🔍 Detectando tópico a partir do índice gerado...');
@@ -392,16 +385,14 @@ const DeepPenAIApp = () => {
         className: 'bg-accent text-accent-foreground',
       });
     } catch (err: unknown) {
-      console.error('Error detecting topic:', err);
-      setError(`Falha ao detectar tópico: ${err instanceof Error ? err.message : 'Erro desconhecido'}`);
+      console.error('Error detecting topic:', err); 
       toast({
         title: 'Erro na Detecção de Tópico',
         description: err instanceof Error ? err.message : 'Erro desconhecido',
         variant: 'destructive',
       });
     } finally {
-      setAutoStartFichamento(true);
-      setIsLoadingTopicDetection(false);
+      setAutoStartFichamento(true); 
     }
   };
 
@@ -416,16 +407,12 @@ const DeepPenAIApp = () => {
    fetchSession();
  }, []);
 
- useEffect(() => {
-   const instructions = activeTab === 'file' ? extractedInstructions : generatedIndex;
-   setCurrentTextAreaValue(instructions || 'As instruções ou estrutura para geração do texto aparecerão aqui...');
- }, [activeTab, extractedInstructions, generatedIndex]);
+ 
 
  useEffect(() => {
    if (activeTab === 'file') {
      const value = detectedLanguage ?? 'pt-PT';
-     setTargetLanguage(value);
-     setCurrentTextAreaValue(extractedInstructions ?? 'As instruções ou estrutura para geração do texto aparecerão aqui...');
+     setTargetLanguage(value); 
    }
  }, [activeTab, detectedLanguage, extractedInstructions]);
 
@@ -444,7 +431,7 @@ const DeepPenAIApp = () => {
       setTemaExtraido(false); // Garante que só detecta uma vez por ciclo
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps 
-  }, [temaExtraido, extractedInstructions, topicTitles, targetLanguage]);
+  }, [temaExtraido]);
 
 
  // Chama automaticamente de criação de ficha após autoStartFichamento ser true
@@ -482,24 +469,7 @@ const DeepPenAIApp = () => {
    return null;
  }
 
- // Add this new component
- const MarkdownTextarea = ({ value, onChange, placeholder }: { value: string; onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void; placeholder?: string }) => {
-   return (
-     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-       <Textarea
-         value={value}
-         onChange={onChange}
-         placeholder={placeholder}
-         className="min-h-[200px] max-h-[400px] font-sans text-sm overflow-y-auto text-foreground dark:text-foreground"
-       />
-       <div className="hidden md:block p-4 rounded-md border border-input bg-background/50 h-[400px] overflow-y-auto">
-         <div className="prose prose-sm dark:prose-invert max-w-none font-serif text-foreground dark:text-foreground">
-           <ReactMarkdown remarkPlugins={[remarkGfm]}>{value}</ReactMarkdown>
-         </div>
-       </div>
-     </div>
-   );
- };
+ 
 
  const getLanguageName = (code: LanguageCode | string | undefined): string => {
  return languageMap[code as LanguageCode] || code || 'Desconhecido';
@@ -521,7 +491,7 @@ const DeepPenAIApp = () => {
  }
  setFile(selectedFile);
  setFileName(selectedFile.name);
- setError(null);
+ 
 
  const reader = new FileReader();
  reader.onloadend = () => {
@@ -533,7 +503,7 @@ const DeepPenAIApp = () => {
  description: 'Falha ao ler o arquivo.',
  variant: 'destructive',
  });
- setError('Falha ao ler o arquivo.');
+
  setFileDataUri(null);
  };
  reader.readAsDataURL(selectedFile);
@@ -557,7 +527,7 @@ const DeepPenAIApp = () => {
  return;
  }
  setIsLoadingExpand(true);
- setError(null);
+
  try {
  const input: ExpandAcademicTextInput = {
  academicText: generatedText,
@@ -574,8 +544,7 @@ const DeepPenAIApp = () => {
  className: 'bg-accent text-accent-foreground',
  });
  } catch (err: unknown) {
- console.error('Error expanding text:', err);
- setError(`Falha ao expandir texto: ${err instanceof Error ? err.message : 'Erro desconhecido'}`);
+ console.error('Error expanding text:', err); 
  toast({
  title: 'Erro ao Expandir',
  description: err instanceof Error ? err.message : 'Erro desconhecido',
@@ -595,8 +564,7 @@ const DeepPenAIApp = () => {
  });
  return;
  }
- setIsLoadingDeepen(true);
- setError(null);
+ setIsLoadingDeepen(true); 
  try {
  const input: DeepenAcademicTextInput = {
  academicText: generatedText,
@@ -614,7 +582,6 @@ const DeepPenAIApp = () => {
  });
  } catch (err: unknown) {
  console.error('Error deepening text:', err);
- setError(`Falha ao aprofundar texto: ${err instanceof Error ? err.message : 'Erro desconhecido'}`);
  toast({
  title: 'Erro ao Aprofundar',
  description: err instanceof Error ? err.message : 'Erro desconhecido',
@@ -667,19 +634,16 @@ const DeepPenAIApp = () => {
  setTopicTitles('');
  setGeneratedIndex(null);
  setDetectedTopic(null);
- setExtractedInstructions(null);
- setCurrentTextAreaValue('As instruções ou estrutura para geração do texto aparecerão aqui...');
+ setExtractedInstructions(null); 
  setDetectedLanguage('pt-PT');
  setTargetLanguage('pt-PT');
  setCitationStyle('Sem Normas');
  setGeneratedText(null);
  setIsLoadingExtract(false);
- setIsLoadingIndex(false);
- setIsLoadingTopicDetection(false);
- setIsLoadingGenerate(false);
+  
  setIsLoadingExpand(false);
  setIsLoadingDeepen(false);
- setError(null);
+  
  const fileInput = document.getElementById('file-upload') as HTMLInputElement;
  if (fileInput) fileInput.value = '';
  toast({
@@ -711,24 +675,13 @@ const DeepPenAIApp = () => {
  }
  };
 
- const handleInstructionsChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
-   const newValue = e.target.value;
-   setCurrentTextAreaValue(newValue);
-   if (activeTab === 'file') {
-     setExtractedInstructions(newValue);
-   } else {
-     setGeneratedIndex(newValue);
-   }
- };
-
-
  return (
   <DashboardLayout user={session?.user ?? undefined}>
   <div className="flex flex-col min-h-screen bg-background text-foreground font-sans">
   {/* Main Content */}
   <main className="container mx-auto px-1 sm:px-8 py-1">
   {/* Tabs for Input Method */}
-  <Tabs
+  {!temaExtraido && (<Tabs
   value={activeTab}
   onValueChange={value => {
   setActiveTab(value as ActiveTab);
@@ -737,12 +690,10 @@ const DeepPenAIApp = () => {
   setDetectedTopic(null);
   // Update target language based on new tab
   if (value === 'file') {
-    setTargetLanguage(detectedLanguage || 'pt-PT');
-    setCurrentTextAreaValue(extractedInstructions || 'As instruções ou estrutura para geração do texto aparecerão aqui...');
+    setTargetLanguage(detectedLanguage || 'pt-PT'); 
   } else {
     // For 'titles' tab, language is explicitly chosen by user or defaults.
-    // Here, we just ensure the displayed instructions are for the current tab.
-      setCurrentTextAreaValue(generatedIndex || 'As instruções ou estrutura para geração do texto aparecerão aqui...');
+    // Here, we just ensure the displayed instructions are for the current tab. 
   }
   }}
   className="mb-8"
@@ -848,61 +799,26 @@ const DeepPenAIApp = () => {
   value={topicTitles}
   onChange={e => {
     setTopicTitles(e.target.value);
-    setTemaExtraido(true);
   }}
   className="min-h-[150px] text-base rounded-md shadow-sm focus:shadow-md bg-background/50 border-input focus:border-primary/70 backdrop-blur-sm border-2 border-primary/40 font-semibold text-lg"
   rows={6}
   spellCheck={false}
   />  
+ <Button
+  className="mt-4 w-full bg-primary text-white font-semibold shadow-md hover:bg-primary/90"
+  onClick={() => setTemaExtraido(true)}
+  disabled={!topicTitles.trim()}
+  type="button"
+>
+  Enviar 
+</Button>
   </CardContent>
   </Card>
   </TabsContent>
-  </Tabs>
+  </Tabs>)}
+  
 
-  {/* Review and Generate Section */}
-  <Card className="rounded-xl shadow-lg overflow-hidden border-t-4 border-accent/80 bg-card/70 backdrop-blur-md border-border/50">
-  <CardHeader className="bg-gradient-to-r from-accent/10 via-secondary/5 to-transparent p-6 border-b border-border/30">
-  <div className="flex items-center gap-4">
-  <div className="bg-gradient-to-br from-accent to-primary/80 text-accent-foreground h-12 w-12 rounded-full flex items-center justify-center font-bold text-2xl shadow-lg">
-  2
-  </div>
-  <CardTitle className="text-2xl font-semibold text-accent">
-  Revisar, Configurar & Gerar Texto
-  </CardTitle>
-  </div>
-  </CardHeader>
-  <CardContent className="p-1 sm:p-8 space-y-8">
-  {error && (
-  <Alert variant="destructive" className="shadow-md bg-destructive/20 border-destructive/50 backdrop-blur-sm">
-  <AlertCircle className="h-5 w-5"/>
-  <AlertTitle className="font-semibold">Ocorreu um Erro</AlertTitle>
-  <AlertDescription>{error}</AlertDescription>
-  </Alert>
-  )}
-
-  {/* Instructions/Index Display */}
-  <div>
-  <Label htmlFor="instructions-display" className="block mb-2 font-semibold">
-  {activeTab === 'file' ? 'Instruções Extraídas' : 'Estrutura/Índice Gerado'}
-  </Label>
-  <MarkdownTextarea
-    value={currentTextAreaValue}
-    onChange={handleInstructionsChange}
-    placeholder="As instruções ou estrutura para geração do texto aparecerão aqui..."
-  />
-  <p className="mt-2 text-xs text-muted-foreground dark:text-muted-foreground">
-  {activeTab === 'file' && extractedInstructions
-    ? 'Conteúdo extraído. Pode ser editado diretamente. Para reprocessar, envie novo arquivo.'
-    : ''}
-  {activeTab === 'titles' && generatedIndex
-    ? `Índice gerado${detectedTopic ? ` para o tópico: "${detectedTopic}"` : ''}. Pode ser editado. Para reprocessar, modifique Títulos/Tema e gere novamente.`
-    : ''}
-  {(activeTab === 'file' && !extractedInstructions && !isLoadingExtract) ||
-  (activeTab === 'titles' && !generatedIndex && !isLoadingIndex && !isLoadingTopicDetection)
-    ? 'Você pode editar este campo diretamente ou usar as opções acima.'
-    : ''}
-  </p>
-  </div>
+  
 
   {/* Language and Citation Style Selection */}
   <div className="grid md:grid-cols-2 gap-6 items-end">
@@ -1125,7 +1041,7 @@ const DeepPenAIApp = () => {
                 
                 {trabalhos?.map((trabalho, index) => (
                   <div key={index}> 
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{trabalho.conteudo}</ReactMarkdown>
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{trabalho. academicText}</ReactMarkdown>
                   </div>
                 ))} 
             </div>
@@ -1134,7 +1050,7 @@ const DeepPenAIApp = () => {
         
       </div> 
 
-      {trabalhoCriado && !isLoadingGenerate && !isLoadingExpand && !isLoadingDeepen && (
+      {trabalhoCriado && !isLoadingExpand && !isLoadingDeepen && (
         <div className="flex justify-between items-center px-6 py-3 border-t border-gray-200/20 dark:border-gray-700/30 text-sm text-gray-400 dark:text-gray-400">
           <div>
             Estilo: <span className="font-semibold text-primary-foreground/80 dark:text-primary-foreground/80">{citationStyle}</span>
@@ -1155,7 +1071,7 @@ const DeepPenAIApp = () => {
   <Button
   onClick={handleExpandText}
   disabled={
-  !generatedText || isLoadingExpand || isLoadingGenerate || isLoadingDeepen
+  !generatedText || isLoadingExpand || isLoadingDeepen
   }
   variant="outline"
   className="flex-1 shadow-sm hover:shadow-md border-primary/50 text-primary hover:bg-primary/10 backdrop-blur-sm py-3 text-base"
@@ -1170,7 +1086,7 @@ const DeepPenAIApp = () => {
   <Button
   onClick={handleDeepenText}
   disabled={
-  !generatedText || isLoadingDeepen || isLoadingGenerate || isLoadingExpand
+  !generatedText || isLoadingDeepen ||  isLoadingExpand
   }
   variant="outline"
   className="flex-1 shadow-sm hover:shadow-md border-primary/50 text-primary hover:bg-primary/10 backdrop-blur-sm py-3 text-base"
@@ -1190,7 +1106,7 @@ const DeepPenAIApp = () => {
       ? `DeepPenAI_${detectedTopic.replace(/[\s:]+/g, '_').replace(/[^\w.-]/g, '')}_${citationStyle}_${targetLanguage}`
       : `DeepPenAI_Output_${citationStyle}_${targetLanguage}`
   }
-  disabled={isLoadingGenerate || isLoadingExpand || isLoadingDeepen}
+  disabled={ isLoadingExpand || isLoadingDeepen}
   />
   </div>
 
@@ -1211,11 +1127,7 @@ const DeepPenAIApp = () => {
   </div>
 
 
-  
-
-
-  </CardContent>
-  </Card>
+   
   </main>
 
   {/* Toaster */}
