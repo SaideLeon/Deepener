@@ -109,6 +109,7 @@ const DeepPenAIApp = () => {
   const [trabalhos, setTrabalhos] = useState<TrabalhoAcademico[] | null>(null);
   const [escrevendo, setEscrevendo] = useState(false); 
   const [logEscritor, seLogEscritor] = useState<string[]>([]);
+  const [logDesevolvendo, setLogDesevolvendo] = useState<string[]>([]);
   const [titulosTotais, setTitulosTotais] = useState(0);
   const [tituloAtual, setTituloAtual] = useState(0);
   const [trabalhoCriado, setTrabalhoCriado] = useState(false);
@@ -261,13 +262,9 @@ const DeepPenAIApp = () => {
   for (let i = 0; i < resultados.length; i++) {
     const titulo = resultados[i];
     setTituloAtual(i + 1);
-    toast({
-      title: `Desenvolvendo: ${titulo}`,
-      description: `Gerando texto para o título ${i + 1} de ${resultados.length}`,
-      variant: 'default',
-      className: 'bg-accent text-accent-foreground',
-    });
-    let texto = null;
+    setLogDesevolvendo((prev: string[]) => [...prev.slice(-1), `📄 Desenvolvendo  "${titulo}"...`]);
+     
+    let dados = null;
     try {
       adicionarLog(`📄 Gerando texto para o título ${i + 1} de ${resultados.length}: ${titulo}`);
       const response = await fetch('/api/escritor', {
@@ -281,27 +278,25 @@ const DeepPenAIApp = () => {
         })
       });
       if (!response.ok) throw new Error('Erro ao gerar texto: ' + response.status);
-      let dados = await response.json();
-      texto = dados.generatedText || dados.academicText; // Corrigido: usar generatedText ou academicText
-      // Corrigido: garantir que academicText existe
-       
-       
+      dados = await response.json();
     } catch (erro: unknown) {
       adicionarLog(`❌ Erro ao gerar trabalho para o título ${i + 1}: ${erro instanceof Error ? erro.message : String(erro)}`);
       continue; // Pula para o próximo título
     }
-    if (!texto) {
+    const academicText = dados?.generatedText || dados?.academicText || '';
+    if (!academicText) {
       adicionarLog(`❌ Texto vazio gerado para o título ${titulo}. Pulando...`);
       continue; // Pula para o próximo título
     }
-    trabalhosGerados.push(texto);
+    trabalhosGerados.push({ academicText });
     setTrabalhos([...trabalhosGerados]); // Atualiza em tempo real
     seLogEscritor((prev: string[]) => [...prev.slice(-2), `✅"${titulo}" foi desenvolvido com sucesso! `]);
-
   }
   adicionarLog(`🎉 Desenvolvimento finalizado! ${trabalhosGerados.length} trabalhos criados.`);
   setTrabalhoCriado(true);
   setEscrevendo(false);
+  setGeneratedText(null);
+  setGeneratedText(trabalhosGerados.map(t => t.academicText).join('\n\n'));
 };
 
   // Função para extrair instruções do arquivo enviado usando 'api/extractInfoFile'
@@ -972,7 +967,18 @@ const DeepPenAIApp = () => {
   {escrevendo && (
     <div className="mt-8 space-y-4">
       <div className="flex items-center justify-between text-gray-700 dark:text-white/80 text-sm mb-2">
-        <span>Desenvolvendo o trabalho...</span>
+        <span>{logDesevolvendo.map((linha, i) => (
+                  <div 
+                    key={i} 
+                    className="transition-all duration-300 animate-fade-in"
+                    style={{
+                      opacity: 1 - (i * 0.3),
+                      transform: `scale(${1 - i * 0.05})`
+                    }}
+                  >
+                    {linha}
+                  </div>
+                ))}</span>
         <span>{tituloAtual} de {titulosTotais}</span>
       </div>
       <div className="w-full h-2 bg-gray-200 dark:bg-white/10 rounded-full overflow-hidden">
@@ -1004,76 +1010,67 @@ const DeepPenAIApp = () => {
   )}
 
   {/* Generated Text Display */}
-  {trabalhoCriado && (
-<div className="sm:ml-1 sm:mr-1 bg-black/60 dark:bg-gray-800 rounded-xl shadow-md overflow-hidden transition-colors duration-300">
-      <div className="flex justify-between items-center px-6 py-4 bg-gray-50/10 dark:bg-gray-900/50 border-b border-gray-200/20 dark:border-gray-700/30">
-        <h3 className="text-xl font-semibold text-gray-100 dark:text-gray-100">
-          Texto Acadêmico Gerado
-        </h3> 
-          <button
-            onClick={copyToClipboard}
-            title="Copiar texto"
-            className="text-gray-300 dark:text-gray-300 hover:bg-gray-200/20 dark:hover:bg-gray-700/50 rounded p-1.5 transition-colors"
-          >
-            <Copy className="h-5 w-5" />
-          </button>
-       </div>
-
-      <div className="p-1 sm:p-8 min-h-[200px]">
-         
-          <div 
-            className="bg-white dark:bg-gray-100 p-1 sm:p-8 rounded shadow-sm overflow-auto max-h-[600px]"
-            style={{ 
-              backgroundImage: "linear-gradient(to bottom, #f9f9f9 0%, white 100%)",
-              border: "1px solid #e0e0e0"
-            }}
-          >
-            <div className="
-                mr-1 ml-1 sm:mr-24 sm:ml-24 max-w-none
-                text-gray-900 dark:text-gray-800
-                font-serif prose prose-lg dark:prose-invert
-                prose-headings:font-bold prose-headings:text-back-900 dark:prose-headings:text-blue-800
-                prose-h1:text-3xl prose-h1:mt-8 prose-h1:mb-4
-                prose-h2:text-2xl prose-h2:mt-6 prose-h2:mb-3
-                prose-h3:text-xl prose-h3:mt-5 prose-h3:mb-2
-                prose-h4:text-lg prose-h4:mt-4 prose-h4:mb-2
-                prose-p:my-4 prose-p:leading-relaxed
-                prose-ul:list-disc prose-ul:pl-6 prose-ul:space-y-1
-                prose-strong:font-bold prose-strong:text-gray-900 dark:prose-strong:text-gray-100
-                prose-em:italic
-                prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:pl-4 prose-blockquote:italic
-                prose-code:text-sm prose-code:bg-gray-100 dark:prose-code:bg-gray-800 prose-code:px-1 prose-code:py-0.5 prose-code:rounded
-                prose-pre:bg-gray-100 dark:prose-pre:bg-gray-800 prose-pre:p-4 prose-pre:rounded-lg"
-                style={{ lineHeight: "1.9", textAlign: "justify" }}
-              >
-                
-                {trabalhos?.map((trabalho, index) => (
-                  <div key={index}> 
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{trabalho.academicText}</ReactMarkdown>
-                  </div>
-                ))} 
-            </div>
-
-          </div>
-        
-      </div> 
-
-      {trabalhoCriado && !isLoadingExpand && !isLoadingDeepen && (
-        <div className="flex justify-between items-center px-6 py-3 border-t border-gray-200/20 dark:border-gray-700/30 text-sm text-gray-400 dark:text-gray-400">
-          <div>
-            Estilo: <span className="font-semibold text-primary-foreground/80 dark:text-primary-foreground/80">{citationStyle}</span>
-          </div>
-          <div>
-            Idioma: <span className="font-semibold text-primary-foreground/80 dark:text-primary-foreground/80">{getLanguageName(targetLanguage)}</span>
-          </div>
-        </div>
-      )}
+{trabalhoCriado && (
+  <div className="sm:ml-1 sm:mr-1 bg-black/60 dark:bg-gray-800 rounded-xl shadow-md overflow-hidden transition-colors duration-300">
+    <div className="flex justify-between items-center px-6 py-4 bg-gray-50/10 dark:bg-gray-900/50 border-b border-gray-200/20 dark:border-gray-700/30">
+      <h3 className="text-xl font-semibold text-gray-100 dark:text-gray-100">
+        Texto Acadêmico Gerado
+      </h3> 
+      <button
+        onClick={copyToClipboard}
+        title="Copiar texto"
+        className="text-gray-300 dark:text-gray-300 hover:bg-gray-200/20 dark:hover:bg-gray-700/50 rounded p-1.5 transition-colors"
+      >
+        <Copy className="h-5 w-5" />
+      </button>
     </div>
-  )}
-  
-  
 
-  {/* Refinement Options */}
+    <div className="p-1 sm:p-8 min-h-[200px]">
+      <div 
+        className="bg-white dark:bg-gray-100 p-1 sm:p-8 rounded shadow-sm overflow-auto max-h-[600px]"
+        style={{ 
+          backgroundImage: "linear-gradient(to bottom, #f9f9f9 0%, white 100%)",
+          border: "1px solid #e0e0e0"
+        }}
+      >
+        <div className="
+            mr-1 ml-1 sm:mr-24 sm:ml-24 max-w-none
+            text-gray-900 dark:text-gray-800
+            font-serif prose prose-lg dark:prose-invert
+            prose-headings:font-bold prose-headings:text-back-900 dark:prose-headings:text-blue-800
+            prose-h1:text-3xl prose-h1:mt-8 prose-h1:mb-4
+            prose-h2:text-2xl prose-h2:mt-6 prose-h2:mb-3
+            prose-h3:text-xl prose-h3:mt-5 prose-h3:mb-2
+            prose-h4:text-lg prose-h4:mt-4 prose-h4:mb-2
+            prose-p:my-4 prose-p:leading-relaxed
+            prose-ul:list-disc prose-ul:pl-6 prose-ul:space-y-1
+            prose-strong:font-bold prose-strong:text-gray-900 dark:prose-strong:text-gray-100
+            prose-em:italic
+            prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:pl-4 prose-blockquote:italic
+            prose-code:text-sm prose-code:bg-gray-100 dark:prose-code:bg-gray-800 prose-code:px-1 prose-code:py-0.5 prose-code:rounded
+            prose-pre:bg-gray-100 dark:prose-pre:bg-gray-800 prose-pre:p-4 prose-pre:rounded-lg"
+            style={{ lineHeight: "1.9", textAlign: "justify" }}
+          > 
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{generatedText}</ReactMarkdown>
+        </div>
+      </div>
+    </div> 
+
+    {!isLoadingExpand && !isLoadingDeepen && (
+      <div className="flex justify-between items-center px-6 py-3 border-t border-gray-200/20 dark:border-gray-700/30 text-sm text-gray-400 dark:text-gray-400">
+        <div>
+          Estilo: <span className="font-semibold text-primary-foreground/80 dark:text-primary-foreground/80">{citationStyle}</span>
+        </div>
+        <div>
+          Idioma: <span className="font-semibold text-primary-foreground/80 dark:text-primary-foreground/80">{getLanguageName(targetLanguage)}</span>
+        </div>
+      </div>
+    )}
+  </div>
+)}
+
+
+{/* Refinement Options */}
   <div className="mt-6 space-y-4">
   <div className="flex flex-col sm:flex-row sm:space-x-4 space-y-4 sm:space-y-0">
   <Button
