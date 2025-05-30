@@ -106,7 +106,6 @@ const DeepPenAIApp = () => {
   
 
    // Desenolvimento de trabalho acadêmico   
-  const [trabalhos, setTrabalhos] = useState<TrabalhoAcademico[] | null>(null);
   const [escrevendo, setEscrevendo] = useState(false); 
   const [logEscritor, seLogEscritor] = useState<string[]>([]);
   const [logDesevolvendo, setLogDesevolvendo] = useState<string[]>([]);
@@ -115,9 +114,9 @@ const DeepPenAIApp = () => {
   const [trabalhoCriado, setTrabalhoCriado] = useState(false);
 
 
-  const adicionarLog = (mensagem: string) => {
+  const adicionarLog = React.useCallback((mensagem: string) => {
     setLog((prev: string[]) => [...prev.slice(-2), mensagem]);
-  };
+  }, []);
 
    const iniciarFichamento = async () => {
     setCarregando(true);
@@ -228,8 +227,6 @@ const DeepPenAIApp = () => {
 
   const iniciarDesenvolvimento = async () => {
   setEscrevendo(true);
-  setTrabalhos([]);
-  seLogEscritor([]);
   setTituloAtual(0);
   setTitulosTotais(fichas?.length || 0);
   setTrabalhoCriado(false);
@@ -267,18 +264,57 @@ const DeepPenAIApp = () => {
     let dados = null;
     try {
       adicionarLog(`📄 Gerando texto para o título ${i + 1} de ${resultados.length}: ${titulo}`);
-      const response = await fetch('/api/escritor', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          reference: fichas?.map(ficha => JSON.stringify(ficha)).join(''),
-          instructions: titulo,
-          targetLanguage,
-          citationStyle
-        })
-      });
-      if (!response.ok) throw new Error('Erro ao gerar texto: ' + response.status);
-      dados = await response.json();
+
+     
+      const tituloLower = titulo.toLowerCase();
+      if (tituloLower.includes('conclusão')) {
+        const response = await fetch('/api/create/conclusion', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+        content: fichas?.map(ficha => JSON.stringify(ficha)).join(''),
+        citationStyle,
+          })
+        });
+        if (!response.ok) throw new Error('Erro ao gerar conclusão: ' + response.status);
+        dados = await response.json();
+      } else if (tituloLower.includes('bibliografia')) {
+        const response = await fetch('/api/create/bibliography', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+        content: fichas?.map(ficha => JSON.stringify(ficha)).join(''),
+        citationStyle,
+          })
+        });
+        if (!response.ok) throw new Error('Erro ao gerar bibliografia: ' + response.status);
+        dados = await response.json();
+      } else if (tituloLower.includes('introdução')) {
+        const response = await fetch('/api/create/introduction', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+        instructions: titulo,
+        targetLanguage,
+          })
+        });
+        if (!response.ok) throw new Error('Erro ao gerar introdução: ' + response.status);
+        dados = await response.json();
+      } else {
+        // Chamada para a API de escritor
+        const response = await fetch('/api/escritor', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+        reference: fichas?.map(ficha => JSON.stringify(ficha)).join(''),
+        instructions: titulo,
+        targetLanguage,
+        citationStyle
+          })
+        });
+        if (!response.ok) throw new Error('Erro ao gerar texto: ' + response.status);
+        dados = await response.json();
+      }
     } catch (erro: unknown) {
       adicionarLog(`❌ Erro ao gerar trabalho para o título ${i + 1}: ${erro instanceof Error ? erro.message : String(erro)}`);
       continue; // Pula para o próximo título
@@ -288,8 +324,7 @@ const DeepPenAIApp = () => {
       adicionarLog(`❌ Texto vazio gerado para o título ${titulo}. Pulando...`);
       continue; // Pula para o próximo título
     }
-    trabalhosGerados.push({ academicText });
-    setTrabalhos([...trabalhosGerados]); // Atualiza em tempo real
+    trabalhosGerados.push({ academicText }); 
     seLogEscritor((prev: string[]) => [...prev.slice(-2), `✅"${titulo}" foi desenvolvido com sucesso! `]);
   }
   adicionarLog(`🎉 Desenvolvimento finalizado! ${trabalhosGerados.length} trabalhos criados.`);
@@ -300,7 +335,7 @@ const DeepPenAIApp = () => {
 };
 
   // Função para extrair instruções do arquivo enviado usando 'api/extractInfoFile'
-  const extractInstructions = async () => { 
+  const extractInstructions = React.useCallback(async () => { 
     if (!fileDataUri) {
       toast({
         title: 'Atenção',
@@ -324,27 +359,21 @@ const DeepPenAIApp = () => {
       if (result.extractedText) {
         setExtractedInstructions(result.extractedText);
         setTemaExtraido(true);
-
-
-      const lang = result.detectedLanguage.toLowerCase();
+        const lang = result.detectedLanguage.toLowerCase();
         let supportedLang: LanguageCode = 'pt-PT';
         if (Object.keys(languageMap).includes(lang)) {
-        supportedLang = lang as LanguageCode;
+          supportedLang = lang as LanguageCode;
         } else if (lang === 'pt') {
-        supportedLang = 'pt-PT';
+          supportedLang = 'pt-PT';
         }
         setDetectedLanguage(supportedLang);
         setTargetLanguage(supportedLang);
-
-
-      toast({
-      title: 'Sucesso',
-      description: `Instruções extraídas. Idioma detectado: ${getLanguageName(
-      supportedLang
-      )}.`,
-      variant: 'default',
-      className: 'bg-accent text-accent-foreground',
-      }); 
+        toast({
+          title: 'Sucesso',
+          description: `Instruções extraídas. Idioma detectado: ${getLanguageName(supportedLang)}.`,
+          variant: 'default',
+          className: 'bg-accent text-accent-foreground',
+        }); 
       } else {
         throw new Error('Nenhum texto extraído do arquivo.');
       }
@@ -359,7 +388,7 @@ const DeepPenAIApp = () => {
     finally {
       setIsLoadingExtract(false);
     }
-  }
+  }, [fileDataUri, toast, adicionarLog, setExtractedInstructions, setTemaExtraido, setDetectedLanguage, setTargetLanguage]);
   
   // Função para detectar tópico usando 'api/detectTopic'
   const detectTopicFunction = async () => {

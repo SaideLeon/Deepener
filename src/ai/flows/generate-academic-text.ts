@@ -83,6 +83,7 @@ When generating the text, please follow these steps:
     - If "ABNT" is chosen, use ABNT style for all citations and references. Example of in-text citation: (AUTOR, ANO, p. xx).
     - If "Sem Normas" is chosen, generate the text naturally without enforcing specific citation rules, but maintain an academic tone.
 6.  It is of utmost importance to use the images present in the bibliographic references. Always seek to include these images in the generated text. If the bibliographic reference contains images (with 'src' and 'legenda'), insert the images in the most relevant section of the text using Markdown image syntax: ![Legenda](src). The image should be placed where it best illustrates or complements the content being discussed. Always include the provided legend as the image caption. If there are multiple images, distribute them throughout the text according to the context of each section. The use of images is essential to enrich and clarify the academic content.
+    - For all images, never include any URL parameters (such as '?width=50&blur=10') in the image source. Always use only the base image URL (e.g., 'https://static.todamateria.com.br/upload/fo/to/fotossistemas.jpg') when inserting images into the Markdown. This applies to all images, including those from the technical sheet (ficha técnica) and any other source.
 7.  The final output must be a single Markdown string. Ensure proper Markdown formatting for headings, paragraphs, lists, images, citations, etc.
 `,
 });
