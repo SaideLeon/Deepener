@@ -107,8 +107,8 @@ const DeepPenAIApp = () => {
 
    // Desenolvimento de trabalho acadêmico   
   const [escrevendo, setEscrevendo] = useState(false); 
-  const [logEscritor, seLogEscritor] = useState<string[]>([]);
-  const [logDesevolvendo, setLogDesevolvendo] = useState<string[]>([]);
+  const [logEscritor, seLogEscritor] = useState<string[] | null>(null);
+  const [logDesevolvendo, setLogDesevolvendo] = useState<string[] | null>(null);
   const [titulosTotais, setTitulosTotais] = useState(0);
   const [tituloAtual, setTituloAtual] = useState(0);
   const [trabalhoCriado, setTrabalhoCriado] = useState(false);
@@ -230,6 +230,10 @@ const DeepPenAIApp = () => {
   setTituloAtual(0);
   setTitulosTotais(fichas?.length || 0);
   setTrabalhoCriado(false);
+  setGeneratedText(null);
+  setLogDesevolvendo(null);
+  seLogEscritor(null);
+
 
   adicionarLog(`📝 Iniciando desenvolvimento de trabalho acadêmico sobre ${detectedTopic}!`);
   let resultados: string[] = [];
@@ -259,7 +263,10 @@ const DeepPenAIApp = () => {
   for (let i = 0; i < resultados.length; i++) {
     const titulo = resultados[i];
     setTituloAtual(i + 1);
-    setLogDesevolvendo((prev: string[]) => [...prev.slice(-1), `📄 Desenvolvendo  "${titulo}"...`]);
+    setLogDesevolvendo((prev: string[] | null) => [
+      ...(prev ? prev.slice(+1) : []),
+      `📄 Desenvolvendo  "${titulo}"...`
+    ]);
      
     let dados = null;
     try {
@@ -316,18 +323,20 @@ const DeepPenAIApp = () => {
         dados = await response.json();
       }
     } catch (erro: unknown) {
-      adicionarLog(`❌ Erro ao gerar trabalho para o título ${i + 1}: ${erro instanceof Error ? erro.message : String(erro)}`);
+      
+      seLogEscritor((prev) => [...(prev ? prev.slice(+2) : []),`❌ Erro ao gerar trabalho para o título ${i + 1}: ${erro instanceof Error ? erro.message : String(erro)}`]);
       continue; // Pula para o próximo título
     }
     const academicText = dados?.generatedText || dados?.academicText || '';
     if (!academicText) {
-      adicionarLog(`❌ Texto vazio gerado para o título ${titulo}. Pulando...`);
+      
+      seLogEscritor((prev) => [...(prev ? prev.slice(+2) : []), `❌ Texto vazio gerado para o título ${titulo}. Pulando...`]);
       continue; // Pula para o próximo título
     }
     trabalhosGerados.push({ academicText }); 
-    seLogEscritor((prev: string[]) => [...prev.slice(-2), `✅"${titulo}" foi desenvolvido com sucesso! `]);
+    seLogEscritor((prev) => [...(prev ? prev.slice(+2) : []), `✅"${titulo}" foi desenvolvido com sucesso! `]);
   }
-  adicionarLog(`🎉 Desenvolvimento finalizado! ${trabalhosGerados.length} trabalhos criados.`);
+  seLogEscritor((prev) => [...(prev ? prev.slice(+2) : []), `🎉 Desenvolvimento finalizado! ${trabalhosGerados.length} trabalhos criados.`]); 
   setTrabalhoCriado(true);
   setEscrevendo(false);
   setGeneratedText(null);
@@ -996,7 +1005,7 @@ const DeepPenAIApp = () => {
   {escrevendo && (
     <div className="mt-8 space-y-4">
       <div className="flex items-center justify-between text-gray-700 dark:text-white/80 text-sm mb-2">
-        <span>{logDesevolvendo.map((linha, i) => (
+        <span>{(logDesevolvendo ?? []).map((linha, i) => (
                   <div 
                     key={i} 
                     className="transition-all duration-300 animate-fade-in"
@@ -1021,7 +1030,7 @@ const DeepPenAIApp = () => {
       </div>
       <div className="bg-gray-100/80 dark:bg-white/5 backdrop-blur-sm rounded-lg p-4">
         <div className="text-gray-800 dark:text-white/90 font-mono text-sm">
-          {logEscritor.map((linha, i) => (
+          {(logEscritor ?? []).map((linha, i) => (
             <div 
               key={i} 
               className="transition-all duration-300 animate-fade-in"
