@@ -32,6 +32,10 @@ const GenerateAcademicTextInputSchema = z.object({
     .enum(["APA", "ABNT", "Sem Normas"])
     .default("Sem Normas")
     .describe('The citation style to be used for the academic text. Options: "APA", "ABNT", "Sem Normas" (default).'),
+  completedSections: z
+    .string()
+    .optional()
+    .describe('Sections of the academic text that have already been completed. These should be used as context, but not redeveloped.'),
 });
 export type GenerateAcademicTextInput = z.infer<
   typeof GenerateAcademicTextInputSchema
@@ -63,6 +67,13 @@ Instructions: {{{instructions}}}
 Target Language: {{{targetLanguage}}}
 Citation Style: {{{citationStyle}}}
 Bibliographic reference: {{{reference}}}
+
+Completed Sections (context only, do not redevelop):
+{{#if completedSections}}
+{{{completedSections}}}
+{{/if}}
+
+IMPORTANT: Only develop the topic(s) explicitly present in the instructions. Do NOT develop or continue to the next sections, even if it seems implicit or logical to do so. Only develop additional sections if the user has made it explicit in the instructions. Ignore any implicit continuation or expansion beyond what is stated.
 
 When generating the text, please follow these steps:
 1.  Structure the academic text with clear and relevant headings (e.g., # Introduction, ## Main Section 1, ### Subsection 1.1, etc.). Use Markdown heading syntax.

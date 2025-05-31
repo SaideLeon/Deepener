@@ -6,7 +6,7 @@ import { generateAcademicText,
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { reference, instructions, targetLanguage, citationStyle } = body;
+    const { reference, instructions, targetLanguage, citationStyle, completedSections } = body;
 
     // Validate input
     const missingFields = [];
@@ -33,6 +33,7 @@ export async function POST(req: NextRequest) {
      instructions: instructions,
      targetLanguage: targetLanguage,
      citationStyle: citationStyle,
+     completedSections 
      };
 
     // Call the AI flow to generate the academic text

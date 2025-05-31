@@ -279,7 +279,7 @@ const DeepPenAIApp = () => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-        content: fichas?.map(ficha => JSON.stringify(ficha)).join(''),
+        content: generatedText,
         citationStyle,
           })
         });
@@ -301,7 +301,7 @@ const DeepPenAIApp = () => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-        instructions: titulo,
+        instructions: topicTitles,
         targetLanguage,
           })
         });
@@ -316,7 +316,8 @@ const DeepPenAIApp = () => {
         reference: fichas?.map(ficha => JSON.stringify(ficha)).join(''),
         instructions: titulo,
         targetLanguage,
-        citationStyle
+        citationStyle,
+        completedSections: trabalhosGerados?.map(trabalhosGerado => JSON.stringify(trabalhosGerado)).join(''),
           })
         });
         if (!response.ok) throw new Error('Erro ao gerar texto: ' + response.status);
