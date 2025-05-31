@@ -73,11 +73,11 @@ Completed Sections (context only, do not redevelop):
 {{{completedSections}}}
 {{/if}}
 
-IMPORTANT: Only develop the topic(s) explicitly present in the instructions. Do NOT develop or continue to the next sections, even if it seems implicit or logical to do so. Only develop additional sections if the user has made it explicit in the instructions. Ignore any implicit continuation or expansion beyond what is stated.
+IMPORTANT: Only develop the topic(s) explicitly present in the instructions. DO NOT develop or repeat any other section (such as introduction, conclusion, bibliography, or any other part of the academic work). Do NOT repeat or summarize content from other sections. Focus strictly and exclusively on the section or topic described in the instructions. If the instructions refer to a section (e.g., 'Anatomia do Coração'), develop ONLY that section, as if it were to be inserted in the correct place in a larger academic work. Do not include any introductory, concluding, or bibliographic content unless explicitly requested in the instructions.
 
 When generating the text, please follow these steps:
-1.  Structure the academic text with clear and relevant headings (e.g., # Introduction, ## Main Section 1, ### Subsection 1.1, etc.). Use Markdown heading syntax.
-2.  For each heading you create or identify from the instructions, ensure that the content beneath it is thoroughly developed and expanded upon. Provide detailed explanations, examples, arguments, and supporting details as appropriate for an academic paper.
+1.  Structure the academic text with clear and relevant headings (e.g., # Section Title, ## Subsection, etc.) only if appropriate for the section. Use Markdown heading syntax.
+2.  For the heading(s) you create or identify from the instructions, ensure that the content beneath it is thoroughly developed and expanded upon. Provide detailed explanations, examples, arguments, and supporting details as appropriate for an academic paper.
 3.  The entire text must be coherent, well-organized, and directly address the given instructions.
 4.  The text must be written in the {{{targetLanguage}}}.
 5.  Adhere strictly to the specified {{{citationStyle}}}.
