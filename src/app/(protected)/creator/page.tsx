@@ -327,10 +327,10 @@ const DeepPenAIApp = () => {
       seLogEscritor((prev) => [...(prev ? prev.slice(+2) : []),`❌ Erro ao gerar trabalho para o título ${i + 1}: ${erro instanceof Error ? erro.message : String(erro)}`]);
       continue; // Pula para o próximo título
     }
-    const academicText = dados?.generatedText || dados?.academicText || '';
+    const academicText = dados?.generatedText || dados?.academicText || dados?.introduction || dados?.conclusion || dados?.bibliography || null;
     if (!academicText) {
       
-      seLogEscritor((prev) => [...(prev ? prev.slice(+2) : []), `❌ Texto vazio gerado para o título ${titulo}. Pulando...`]);
+      seLogEscritor((prev) => [...(prev ? prev.slice(+2) : []), `❌ Erro ao gerar texto para o título ${titulo}. Pulando...`]);
       continue; // Pula para o próximo título
     }
     trabalhosGerados.push({ academicText }); 
