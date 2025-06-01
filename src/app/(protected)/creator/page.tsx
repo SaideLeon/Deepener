@@ -1057,7 +1057,8 @@ const [fontSizePx, setFontSizePx] = useState<number>(20);
   <div className="sm:ml-1 sm:mr-1 bg-black/60 dark:bg-gray-800 rounded-xl shadow-md overflow-hidden transition-colors duration-300">
     <div className="flex justify-between items-center px-6 py-4 bg-gray-50/10 dark:bg-gray-900/50 border-b border-gray-200/20 dark:border-gray-700/30">
       <h3 className="text-xl font-semibold text-gray-100 dark:text-gray-100">
-        Texto Acadêmico Gerado
+       
+          {detectedTopic || 'Trabalho Gerado'}
       </h3> 
       <div className="flex items-center gap-4">
         <label htmlFor="font-size-select" className="text-gray-300 dark:text-gray-300 text-sm mr-2">Tamanho do texto:</label>
@@ -1089,21 +1090,18 @@ const [fontSizePx, setFontSizePx] = useState<number>(20);
           border: "1px solid #e0e0e0"
         }}
       >
-        <div className="mr-1 ml-1 sm:mr-24 sm:ml-24 max-w-none text-gray-900 dark:text-gray-800 font-serif prose prose-lg dark:prose-invert
-            prose-headings:font-bold prose-headings:text-back-900 dark:prose-headings:text-blue-800
-            prose-h1:text-3xl prose-h1:mt-8 prose-h1:mb-4
-            prose-h2:text-2xl prose-h2:mt-6 prose-h2:mb-3
-            prose-h3:text-xl prose-h3:mt-5 prose-h3:mb-2
-            prose-h4:text-lg prose-h4:mt-4 prose-h4:mb-2
-            prose-p:my-4 prose-p:leading-relaxed
-            prose-ul:list-disc prose-ul:pl-6 prose-ul:space-y-1
-            prose-strong:font-bold prose-strong:text-gray-900 dark:prose-strong:text-gray-100
-            prose-em:italic
-            prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:pl-4 prose-blockquote:italic
-            prose-code:text-sm prose-code:bg-gray-100 dark:prose-code:bg-gray-800 prose-code:px-1 prose-code:py-0.5 prose-code:rounded
-            prose-pre:bg-gray-100 dark:prose-pre:bg-gray-800 prose-pre:p-4 prose-pre:rounded-lg"
-          style={{ lineHeight: "1.9", textAlign: "justify", fontSize: `${fontSizePx}px` }}
-        > 
+        <div className="mr-1 ml-1 sm:mr-24 sm:ml-24 max-w-none text-gray-900 dark:text-gray-800 font-serif prose prose-lg dark:prose-invert prose-headings:font-bold prose-headings:text-back-900 dark:prose-headings:text-blue-800 prose-p:my-4 prose-p:leading-relaxed prose-ul:list-disc prose-ul:pl-6 prose-ul:space-y-1 prose-strong:font-bold prose-strong:text-gray-900 dark:prose-strong:text-gray-100 prose-em:italic prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:pl-4 prose-blockquote:italic prose-code:text-sm prose-code:bg-gray-100 dark:prose-code:bg-gray-800 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:bg-gray-100 dark:prose-pre:bg-gray-800 prose-pre:p-4 prose-pre:rounded-lg"
+          style={{
+            lineHeight: "1.9",
+            textAlign: "justify",
+            fontSize: `${fontSizePx}px`,
+          }}
+        >
+          <style>{`
+            .prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 {
+              font-size: ${Math.round(fontSizePx * 0.97)}px !important;
+            }
+          `}</style>
           <ReactMarkdown remarkPlugins={[remarkGfm]}>{generatedText}</ReactMarkdown>
         </div>
       </div>
