@@ -19,6 +19,9 @@ export function GeneratedWorkContent({ work }: GeneratedWorkContentProps) {
   const [isLoadingExpand] = useState<boolean>(false);
   const [isLoadingDeepen] = useState<boolean>(false);
 
+  // Estado para controlar o tamanho da fonte do texto gerado
+  const [fontSizePx, setFontSizePx] = useState<number>(16);
+
   const copyToClipboard = () => {
     if (work.generatedText) {
       navigator.clipboard
@@ -44,9 +47,20 @@ export function GeneratedWorkContent({ work }: GeneratedWorkContentProps) {
     <div className="min-h-[400px] sm:ml-1 sm:mr-1 bg-black/60 dark:bg-gray-800 rounded-xl shadow-md overflow-hidden transition-colors duration-300">
       <div className="flex justify-between items-center px-6 py-4 bg-gray-50/10 dark:bg-gray-900/50 border-b border-gray-200/20 dark:border-gray-700/30">
         <h3 className="text-xl font-semibold text-gray-100 dark:text-gray-100">
-          Texto Acadêmico Gerado
+           {work.topic || 'Trabalho Gerado'}
         </h3>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-4">
+          <label htmlFor="font-size-select" className="text-gray-300 dark:text-gray-300 text-sm mr-2">Tamanho do texto:</label>
+          <input
+            id="font-size-select"
+            type="range"
+            min={12}
+            max={32}
+            value={fontSizePx}
+            onChange={e => setFontSizePx(Number(e.target.value))}
+            className="w-24 accent-primary"
+          />
+          <span className="text-gray-300 dark:text-gray-300 text-sm w-8 text-center">{fontSizePx}px</span>
           <MarkdownToDocx
             markdownContent={work.generatedText}
             fileName={
@@ -90,8 +104,13 @@ export function GeneratedWorkContent({ work }: GeneratedWorkContentProps) {
             prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:pl-4 prose-blockquote:italic
             prose-code:text-sm prose-code:bg-gray-100 dark:prose-code:bg-gray-800 prose-code:px-1 prose-code:py-0.5 prose-code:rounded
             prose-pre:bg-gray-100 dark:prose-pre:bg-gray-800 prose-pre:p-4 prose-pre:rounded-lg"
-            style={{ lineHeight: "1.9", textAlign: "justify" }}
+            style={{ lineHeight: "1.9", textAlign: "justify", fontSize: `${fontSizePx}px` }}
           >
+            <style>{`
+              .prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 {
+                font-size: ${Math.round(fontSizePx * 0.97)}px !important;
+              }
+            `}</style>
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{work.generatedText}</ReactMarkdown>
           </div>
         </div>

@@ -115,7 +115,7 @@ const DeepPenAIApp = () => {
 
 
   // Estado para controlar o tamanho da fonte do texto gerado
-const [fontSizePx, setFontSizePx] = useState<number>(20);
+const [fontSizePx, setFontSizePx] = useState<number>(16);
 
 
   const adicionarLog = React.useCallback((mensagem: string) => {
